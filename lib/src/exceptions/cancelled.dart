@@ -1,0 +1,98 @@
+part of '../conveyor.dart';
+
+/// Класс, сигнализирующий об отмене обработчика события.
+@immutable
+sealed class Cancelled {
+  const Cancelled._();
+
+  @override
+  bool operator ==(covariant Cancelled other) =>
+      identical(this, other) || runtimeType == other.runtimeType;
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+}
+
+/// Отменено выбрасыванием исключения.
+///
+/// Позволяем пользователю вручную отменять функцию-обработчик, вызывая
+/// исключение внутри обработчика:
+///
+/// ```
+/// throw CancelledByException();
+/// ```
+///
+/// Прямой доступ к созданию других классов пользователь не имеет.
+final class CancelledByException extends Cancelled implements Exception {
+  const CancelledByException() : super._();
+
+  @override
+  String toString() => '$CancelledByException()';
+}
+
+/// Отменено вручную.
+///
+/// Позволяем пользователю отменять текущий процесс обработки события.
+///
+/// ```
+/// conveyor.currentProcess.cancel();
+/// ```
+final class CancelledManually extends Cancelled {
+  const CancelledManually._() : super._();
+
+  @override
+  String toString() => '$CancelledManually()';
+}
+
+/// Состояние не удовлетворяет условиям обработки события.
+///
+/// Причина срабатывает при изменении состояния извне во время обработки
+/// события, если в событии заданы ограничения на допустимое состояние.
+/// В этом случае сразу происходит отмена подписки на функцию-обработчик
+/// события. Но реальное прекращение работы функции произойдёт только на
+/// yield/yield*, либо на ручной проверке с помощью [Conveyor.state] и
+/// [Conveyor.checkState].
+///
+/// В последнем случае причиной отмены останется [CancelledByEventContidion],
+/// а не [CancelledByCheckState].
+final class CancelledByEventContidion extends Cancelled {
+  const CancelledByEventContidion._() : super._();
+
+  @override
+  String toString() => '$CancelledByEventContidion()';
+}
+
+/// Удалено из очереди, потому что состояние не удовлетворяет условиям
+/// обработки события.
+///
+/// Причина срабатывает при поиске очередного события для обработки.
+final class RemovedFromQueueByEventContidion extends Cancelled {
+  const RemovedFromQueueByEventContidion._() : super._();
+
+  @override
+  String toString() => '$RemovedFromQueueByEventContidion()';
+}
+
+/// Состояние не удовлетворяет условию работы в текущем месте
+/// функции-обработчика.
+///
+/// Причина срабатывает при ручной проверке с помощью [Conveyor.state] или
+/// [Conveyor.checkState].
+final class CancelledByCheckState extends Cancelled implements Exception {
+  const CancelledByCheckState._() : super._();
+
+  @override
+  String toString() => '$CancelledByCheckState()';
+}
+
+/// Событие удалено из очереди вручную.
+///
+/// ```
+/// conveyor.remove(...);
+/// ```
+final class RemovedFromQueueManually extends Cancelled {
+  const RemovedFromQueueManually._() : super._();
+
+  @override
+  String toString() => '$RemovedFromQueueManually()';
+}
