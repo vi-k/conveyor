@@ -5,6 +5,8 @@ abstract interface class ConveyorResult {
 
   bool get isFinished;
 
+  bool get isSuccess;
+
   bool get isError;
 
   bool get isCancelled;
@@ -28,6 +30,9 @@ final class _ConveyorResult implements ConveyorResult {
 
   @override
   bool get isFinished => _futureCompleter.isCompleted;
+
+  @override
+  bool get isSuccess => _futureCompleter.isCompleted && _finisher == null;
 
   @override
   bool get isError {
@@ -83,11 +88,7 @@ final class _ConveyorResult implements ConveyorResult {
     _futureCompleter.complete();
   }
 
-  void cancel() {
-    _cancel(const CancelledManually._(), StackTrace.current);
-  }
-
-  void _cancel(Cancelled reason, StackTrace stackTrace) {
+  void cancel(Cancelled reason, StackTrace stackTrace) {
     _checkResult();
     _finisher = (reason, stackTrace);
     _futureCompleter.complete();

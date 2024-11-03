@@ -1,7 +1,8 @@
 part of 'conveyor.dart';
 
-mixin SetState<S extends Object, E extends ConveyorEvent<S, E>>
-    on Conveyor<S, E> {
+mixin ExternalSetState<BaseState extends Object,
+        Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>>
+    on Conveyor<BaseState, Event> {
   @protected
-  void setState(S state) => _externalSetState(state);
+  void externalSetState(BaseState state) => _externalSetState(state);
 }

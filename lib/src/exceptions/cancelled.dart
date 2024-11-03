@@ -50,39 +50,39 @@ final class CancelledManually extends Cancelled {
 /// события, если в событии заданы ограничения на допустимое состояние.
 /// В этом случае сразу происходит отмена подписки на функцию-обработчик
 /// события. Но реальное прекращение работы функции произойдёт только на
-/// yield/yield*, либо на ручной проверке с помощью [Conveyor.state] и
-/// [Conveyor.checkState].
+/// yield/yield*, либо на ручной проверке с помощью [ConveyorStateProvider].
 ///
-/// В последнем случае причиной отмены останется [CancelledByEventContidion],
-/// а не [CancelledByCheckState].
-final class CancelledByEventContidion extends Cancelled {
-  const CancelledByEventContidion._() : super._();
+/// В последнем случае причиной отмены останется
+/// [CancelledByEventRulesOnExternalChange], а не [CancelledByCheckState].
+final class CancelledByEventRulesOnExternalChange extends Cancelled {
+  const CancelledByEventRulesOnExternalChange._() : super._();
 
   @override
-  String toString() => '$CancelledByEventContidion()';
+  String toString() => '$CancelledByEventRulesOnExternalChange()';
 }
 
 /// Удалено из очереди, потому что состояние не удовлетворяет условиям
 /// обработки события.
 ///
 /// Причина срабатывает при поиске очередного события для обработки.
-final class RemovedFromQueueByEventContidion extends Cancelled {
-  const RemovedFromQueueByEventContidion._() : super._();
+final class RemovedFromQueueByEventRules extends Cancelled {
+  const RemovedFromQueueByEventRules._() : super._();
 
   @override
-  String toString() => '$RemovedFromQueueByEventContidion()';
+  String toString() => '$RemovedFromQueueByEventRules()';
 }
 
 /// Состояние не удовлетворяет условию работы в текущем месте
 /// функции-обработчика.
 ///
-/// Причина срабатывает при ручной проверке с помощью [Conveyor.state] или
-/// [Conveyor.checkState].
+/// Причина срабатывает при ручной проверке с помощью [ConveyorStateProvider].
 final class CancelledByCheckState extends Cancelled implements Exception {
-  const CancelledByCheckState._() : super._();
+  final String? description;
+
+  const CancelledByCheckState._([this.description]) : super._();
 
   @override
-  String toString() => '$CancelledByCheckState()';
+  String toString() => '$CancelledByCheckState(${description ?? ''})';
 }
 
 /// Событие удалено из очереди вручную.
