@@ -2,7 +2,7 @@ part of '../conveyor.dart';
 
 /// Класс, сигнализирующий об отмене обработчика события.
 @immutable
-sealed class Cancelled {
+sealed class Cancelled implements Exception {
   const Cancelled._();
 
   @override
@@ -23,7 +23,7 @@ sealed class Cancelled {
 /// ```
 ///
 /// Прямой доступ к созданию других классов пользователь не имеет.
-final class CancelledByException extends Cancelled implements Exception {
+final class CancelledByException extends Cancelled {
   const CancelledByException() : super._();
 
   @override
@@ -46,37 +46,30 @@ final class CancelledManually extends Cancelled {
 
 /// Состояние не удовлетворяет условиям обработки события.
 ///
-/// Причина срабатывает при изменении состояния извне во время обработки
+/// Причина срабатывает при изменении состояния во время обработки
 /// события, если в событии заданы ограничения на допустимое состояние.
 /// В этом случае сразу происходит отмена подписки на функцию-обработчик
-/// события. Но реальное прекращение работы функции произойдёт только на
-/// yield/yield*, либо на ручной проверке с помощью [ConveyorStateProvider].
+/// события.
 ///
-/// В последнем случае причиной отмены останется
-/// [CancelledByEventRulesOnExternalChange], а не [CancelledByCheckState].
-final class CancelledByEventRulesOnExternalChange extends Cancelled {
-  const CancelledByEventRulesOnExternalChange._() : super._();
+/// Проверяется во время установки состояние извне и при проверке с помощью
+/// [ConveyorStateProvider].
+final class CancelledByEventRules extends Cancelled {
+  final String? description;
+
+  const CancelledByEventRules._([this.description]) : super._();
 
   @override
-  String toString() => '$CancelledByEventRulesOnExternalChange()';
-}
-
-/// Удалено из очереди, потому что состояние не удовлетворяет условиям
-/// обработки события.
-///
-/// Причина срабатывает при поиске очередного события для обработки.
-final class RemovedFromQueueByEventRules extends Cancelled {
-  const RemovedFromQueueByEventRules._() : super._();
-
-  @override
-  String toString() => '$RemovedFromQueueByEventRules()';
+  String toString() => '$CancelledByEventRules(${description ?? ''})';
 }
 
 /// Состояние не удовлетворяет условию работы в текущем месте
 /// функции-обработчика.
 ///
-/// Причина срабатывает при ручной проверке с помощью [ConveyorStateProvider].
-final class CancelledByCheckState extends Cancelled implements Exception {
+/// Причина срабатывает при ручной проверке с помощью [ConveyorStateProvider]
+/// через дополнительные условия [ConveyorStateProvider.test],
+/// [ConveyorStateProvider.isA], [ConveyorStateProvider.map],
+/// [ConveyorStateProvider.strongMap].
+final class CancelledByCheckState extends Cancelled {
   final String? description;
 
   const CancelledByCheckState._([this.description]) : super._();
@@ -95,4 +88,17 @@ final class RemovedFromQueueManually extends Cancelled {
 
   @override
   String toString() => '$RemovedFromQueueManually()';
+}
+
+/// Удалено из очереди, потому что состояние не удовлетворяет условиям
+/// обработки события.
+///
+/// Причина срабатывает при поиске очередного события для обработки.
+final class RemovedFromQueueByEventRules extends Cancelled {
+  final String? description;
+
+  const RemovedFromQueueByEventRules._([this.description]) : super._();
+
+  @override
+  String toString() => '$RemovedFromQueueByEventRules(${description ?? ''})';
 }

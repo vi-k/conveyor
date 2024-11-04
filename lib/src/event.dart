@@ -3,18 +3,15 @@ part of 'conveyor.dart';
 /// Событие конвейера.
 abstract base class ConveyorEvent<
     BaseState extends Object,
-    Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>,
-    WorkingState extends BaseState,
-    OutState extends BaseState> extends LinkedListItem<Event> {
+    Event extends ConveyorEvent<BaseState, Event, BaseState>,
+    WorkingState extends BaseState> extends LinkedListItem<Event> {
   /// Событие конвейера с переданной функцией его обработки [_process].
   ///
   /// Требуемые типы:
   /// - [BaseState] и [Event] - состояние и события, с которыми работает
   ///   конвейер.
-  /// - [WorkingState] - допустимое рабочее состояние. Проверяется до запуска
-  ///   события и при проверке в state внутри обработчика события. При
-  ///   несоответствии типа событие отменяется.
-  /// - [OutState] - исходящее состояние, которое допускается в `yield`.
+  /// - [WorkingState] - допустимое рабочее состояние (и входящее,
+  ///   и промежуточное, и исходящее).
   ///
   /// Пример:
   ///
@@ -53,7 +50,7 @@ abstract base class ConveyorEvent<
   ///   извне (если такое изменение допускается в вашем конвейере). Если
   ///   состояние изменилось и тип состояния не соответствует [WorkingState]
   ///   или проверка [checkStateOnExternalChange] вернула `false`, обработка
-  ///   события прерывается с признаком [CancelledByEventRulesOnExternalChange].
+  ///   события прерывается с признаком [CancelledByEventRules].
   ///
   ///   Пример 1:
   ///
@@ -171,8 +168,8 @@ abstract base class ConveyorEvent<
         : classType.substring(0, genericTypeStart);
   }
 
-  final Stream<OutState> Function(
-    ConveyorStateProvider<BaseState, Event, WorkingState> state,
+  final Stream<WorkingState> Function(
+    RootConveyorStateProvider<BaseState, Event, WorkingState> state,
   ) _process;
 
   final Object? key;
@@ -192,44 +189,62 @@ abstract base class ConveyorEvent<
   ConveyorResult get result => _result;
 
   /// Проверяет состояние перед запуском обработки события.
-  bool checkStateBeforeProcessing(BaseState state) =>
-      state is WorkingState &&
-      (_checkStateBeforeProcessing?.call(state) ??
-          _checkState?.call(state) ??
-          true);
+  void checkStateBeforeProcessing(BaseState state) {
+    if (state is! WorkingState) {
+      throw RemovedFromQueueByEventRules._('is not $WorkingState');
+    }
+
+    final checkStateBeforeProcessing = _checkStateBeforeProcessing;
+    if (checkStateBeforeProcessing != null &&
+        !checkStateBeforeProcessing(state)) {
+      throw const RemovedFromQueueByEventRules._('checkStateBeforeProcessing');
+    }
+
+    final checkState = _checkState;
+    if (checkState != null && !checkState(state)) {
+      throw const RemovedFromQueueByEventRules._('checkState');
+    }
+  }
 
   /// Проверяет состояние при внешнем изменении.
-  bool checkStateOnExternalChange(BaseState state) =>
-      state is WorkingState &&
-      (_checkStateOnExternalChange?.call(state) ??
-          _checkState?.call(state) ??
-          true);
+  void checkStateOnExternalChange(BaseState state) {
+    if (state is! WorkingState) {
+      throw CancelledByEventRules._('is not $WorkingState');
+    }
+
+    final checkStateOnExternalChange = _checkStateOnExternalChange;
+    if (checkStateOnExternalChange != null &&
+        !checkStateOnExternalChange(state)) {
+      throw const CancelledByEventRules._('checkStateOnExternalChange');
+    }
+
+    final checkState = _checkState;
+    if (checkState != null && !checkState(state)) {
+      throw const CancelledByEventRules._('checkState');
+    }
+  }
 
   /// Запуск обработки события.
   ///
   /// В калбэк обработки события для проверки и возврата состояния передаётся
   /// провайдер состояния [ConveyorStateProvider] для доступа к состоянию
   /// конвейера.
-  Stream<OutState> _run(
+  (RootConveyorStateProvider<BaseState, Event, BaseState>, Stream<WorkingState>)
+      _run(
     Conveyor<BaseState, Event> conveyor,
     ConveyorProcess<BaseState, Event> process,
   ) {
-    final ConveyorStateProvider<BaseState, Event, WorkingState> stateProvider =
-        _RootConveyorStateProvider(conveyor, process);
-    final checkState = _checkState;
-
-    return _process(
-      checkState == null ? stateProvider : stateProvider.test(checkState),
+    final stateProvider =
+        RootConveyorStateProvider<BaseState, Event, WorkingState>(
+      conveyor,
+      process,
+      _checkState,
     );
+
+    return (stateProvider, _process(stateProvider));
   }
 
-  String debugInfo({
-    String prefix = ' ',
-    String postfix = '',
-  }) {
-    final info = _debugInfo?.call() ?? '';
-    return info.isEmpty ? '' : '$prefix$info$postfix';
-  }
+  String debugInfo() => _debugInfo?.call() ?? '';
 
   @override
   String toString() => '$_classType(${key == null ? '' : '$key'})';

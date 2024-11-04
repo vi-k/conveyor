@@ -1,7 +1,7 @@
 part of 'conveyor.dart';
 
 final class ConveyorQueue<BaseState extends Object,
-        Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>>
+        Event extends ConveyorEvent<BaseState, Event, BaseState>>
     extends LinkedList<Event> {
   final void Function()? onPause;
   final void Function()? onResume;

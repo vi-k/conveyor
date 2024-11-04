@@ -2,10 +2,8 @@ import 'package:conveyor/conveyor.dart';
 
 import 'state.dart';
 
-final class TestEvent<WorkingState extends TestState,
-        OutState extends TestState>
-    extends ConveyorEvent<TestState, TestEvent<TestState, TestState>,
-        WorkingState, OutState> {
+final class TestEvent<WorkingState extends TestState>
+    extends ConveyorEvent<TestState, TestEvent<TestState>, WorkingState> {
   TestEvent(
     super.callback, {
     required String super.key,

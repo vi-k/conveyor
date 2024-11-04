@@ -5,13 +5,15 @@ part of 'conveyor.dart';
 /// Общий интерфейс провайдера, предоставляющего доступ к состоянию конвейера.
 abstract interface class ConveyorStateProvider<
     BaseState extends Object,
-    Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>,
+    Event extends ConveyorEvent<BaseState, Event, BaseState>,
     OutState extends BaseState> {
   ConveyorProcess<BaseState, Event> get process;
 
   OutState get value;
 
   T use<T>(T Function(OutState it) callback);
+
+  void check();
 
   Stream<OutState> run(Event event);
 
@@ -28,17 +30,12 @@ abstract interface class ConveyorStateProvider<
       map<CastState extends BaseState>(
     CastState Function(OutState it) callback,
   );
-
-  /// Заменяет состояние новым с сохранением типа.
-  ConveyorStateProvider<BaseState, Event, OutState> strongMap(
-    OutState Function(OutState it) callback,
-  );
 }
 
 /// Основа для провайдеров.
 abstract base class _BaseConveyorStateProvider<
         BaseState extends Object,
-        Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>,
+        Event extends ConveyorEvent<BaseState, Event, BaseState>,
         OutState extends BaseState>
     implements ConveyorStateProvider<BaseState, Event, OutState> {
   Conveyor<BaseState, Event> get _conveyor;
@@ -73,17 +70,24 @@ abstract base class _BaseConveyorStateProvider<
         }
       },
       onFinish: () {
-        final result = event.result;
-        if (!result.isSuccess) {
-          streamController.addError(
-            result.isCancelled ? result.cancellationReason : result.error,
-            result.stackTrace,
-          );
+        try {
+          check();
+        } on Object catch (error, stackTrace) {
+          streamController.addError(error, stackTrace);
         }
-
         streamController.close();
+
+        final currentProcesses = _conveyor._currentProcesses;
+        if (currentProcesses != null) {
+          currentProcesses.remove(childProcess);
+        }
       },
     );
+
+    final currentProcesses = _conveyor._currentProcesses;
+    if (currentProcesses != null) {
+      currentProcesses.add(childProcess);
+    }
 
     return streamController.stream;
   }
@@ -109,19 +113,12 @@ abstract base class _BaseConveyorStateProvider<
     CastState Function(OutState it) callback,
   ) =>
           _MapConveyorStateProvider(this, callback);
-
-  /// Заменяет состояние новым с сохранением типа.
-  @override
-  ConveyorStateProvider<BaseState, Event, OutState> strongMap(
-    OutState Function(OutState it) callback,
-  ) =>
-      _StrongMapConveyorStateProvider(this, callback);
 }
 
 /// Корневой провайдер, напрямую предоставляющий доступ к состоянию конвейера.
-final class _RootConveyorStateProvider<
+final class RootConveyorStateProvider<
         BaseState extends Object,
-        Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>,
+        Event extends ConveyorEvent<BaseState, Event, BaseState>,
         OutState extends BaseState>
     extends _BaseConveyorStateProvider<BaseState, Event, OutState> {
   @override
@@ -130,19 +127,48 @@ final class _RootConveyorStateProvider<
   @override
   final ConveyorProcess<BaseState, Event> process;
 
-  _RootConveyorStateProvider(this._conveyor, this.process);
+  final bool Function(OutState)? _userCheckState;
+
+  RootConveyorStateProvider(
+    this._conveyor,
+    this.process,
+    this._userCheckState,
+  );
 
   @override
   BaseState get _state => _conveyor._state;
 
   @override
+  OutState _checkState(BaseState state) {
+    if (state is! OutState) {
+      throw CancelledByEventRules._('is not $OutState');
+    }
+
+    final userCheckState = _userCheckState;
+    if (userCheckState != null && !userCheckState(state)) {
+      throw const CancelledByEventRules._('checkState');
+    }
+
+    return state;
+  }
+
+  @override
   OutState get value => _checkState(_conveyor._state);
+
+  @override
+  void check() {
+    _checkState(_conveyor._state);
+  }
+
+  void log(Object? message) {
+    _conveyor.onRawLog(process, message);
+  }
 }
 
 /// Основа для трансформеров.
 abstract base class _BaseConveyorStateTransformer<
         BaseState extends Object,
-        Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>,
+        Event extends ConveyorEvent<BaseState, Event, BaseState>,
         WorkingState extends BaseState,
         OutState extends BaseState>
     extends _BaseConveyorStateProvider<BaseState, Event, OutState> {
@@ -160,28 +186,41 @@ abstract base class _BaseConveyorStateTransformer<
   BaseState get _state => _checkState(_previous._state);
 
   @override
-  OutState get value => _checkState(_previous._state);
+  OutState get value => _checkState(_previous.value);
+
+  @override
+  void check() {
+    _checkState(_previous.value);
+  }
 }
 
 final class _TestMatcherConveyorStateTransformer<
         BaseState extends Object,
-        Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>,
-        InOutState extends BaseState>
-    extends _BaseConveyorStateTransformer<BaseState, Event, InOutState,
-        InOutState> {
-  final bool Function(InOutState state) _test;
+        Event extends ConveyorEvent<BaseState, Event, BaseState>,
+        WorkingState extends BaseState>
+    extends _BaseConveyorStateTransformer<BaseState, Event, WorkingState,
+        WorkingState> {
+  final bool Function(WorkingState state) _test;
 
   _TestMatcherConveyorStateTransformer(super._previous, this._test);
 
   @override
-  InOutState _checkState(BaseState state) => state is InOutState && _test(state)
-      ? state
-      : throw CancelledByCheckState._('is not $InOutState');
+  WorkingState _checkState(BaseState state) {
+    if (state is! WorkingState) {
+      throw CancelledByCheckState._('is not $WorkingState');
+    }
+
+    if (!_test(state)) {
+      throw const CancelledByCheckState._('test');
+    }
+
+    return state;
+  }
 }
 
 final class _TypeMatcherConveyorStateTransformer<
         BaseState extends Object,
-        Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>,
+        Event extends ConveyorEvent<BaseState, Event, BaseState>,
         WorkingState extends BaseState,
         OutState extends BaseState>
     extends _BaseConveyorStateTransformer<BaseState, Event, WorkingState,
@@ -191,7 +230,7 @@ final class _TypeMatcherConveyorStateTransformer<
 
 final class _MapConveyorStateProvider<
         BaseState extends Object,
-        Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>,
+        Event extends ConveyorEvent<BaseState, Event, BaseState>,
         WorkingState extends BaseState,
         OutState extends BaseState>
     extends _BaseConveyorStateTransformer<BaseState, Event, WorkingState,
@@ -204,20 +243,4 @@ final class _MapConveyorStateProvider<
   OutState _checkState(BaseState state) => state is WorkingState
       ? _callback(state)
       : throw CancelledByCheckState._('is not $WorkingState');
-}
-
-final class _StrongMapConveyorStateProvider<
-        BaseState extends Object,
-        Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>,
-        InOutState extends BaseState>
-    extends _BaseConveyorStateTransformer<BaseState, Event, InOutState,
-        InOutState> {
-  final InOutState Function(InOutState state) _callback;
-
-  _StrongMapConveyorStateProvider(super._previous, this._callback);
-
-  @override
-  InOutState _checkState(BaseState state) => state is InOutState
-      ? _callback(state)
-      : throw CancelledByCheckState._('is not $InOutState');
 }

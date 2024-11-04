@@ -1,7 +1,7 @@
 part of 'conveyor.dart';
 
 abstract interface class ConveyorProcess<BaseState extends Object,
-    Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>> {
+    Event extends ConveyorEvent<BaseState, Event, BaseState>> {
   /// Уровень процесса.
   ///
   /// 0 - корневой, запускается напрямую из конвейера.
@@ -41,7 +41,7 @@ abstract interface class ConveyorProcess<BaseState extends Object,
 }
 
 class _ConveyorProcess<BaseState extends Object,
-        Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>>
+        Event extends ConveyorEvent<BaseState, Event, BaseState>>
     implements ConveyorProcess<BaseState, Event> {
   final Conveyor<BaseState, Event> conveyor;
 
@@ -69,8 +69,21 @@ class _ConveyorProcess<BaseState extends Object,
     debug('process $event started');
     conveyor.onStart(this);
 
-    _subscription = event._run(conveyor, this).listen(
-      onData,
+    final (stateProvider, stream) = event._run(conveyor, this);
+
+    // final stateProvider = event._createStateProvider(conveyor, this);
+    // _subscription = event._process(stateProvider).listen(
+    // _subscription = event._run(conveyor, this).listen(
+    _subscription = stream.listen(
+      (state) {
+        onData(state);
+        try {
+          debug('$event checkState onData');
+          stateProvider._checkState(state);
+        } on Cancelled catch (reason, _) {
+          _cancel(reason, StackTrace.current);
+        }
+      },
       // ignore: avoid_types_on_closure_parameters
       onError: (Object error, StackTrace stackTrace) async {
         await _subscription?.cancel();
@@ -110,11 +123,15 @@ class _ConveyorProcess<BaseState extends Object,
   Future<void> get future => event.result.future;
 
   @override
-  Future<void> cancel() => _cancel(const CancelledManually._());
+  Future<void> cancel() => _cancel(
+        const CancelledManually._(),
+        StackTrace.current,
+      );
 
   @override
   Future<void> forceCancel() => _cancel(
         const CancelledManually._(),
+        StackTrace.current,
         forceCancel: true,
       );
 
@@ -123,7 +140,8 @@ class _ConveyorProcess<BaseState extends Object,
       test(event) ? event : null;
 
   Future<void> _cancel(
-    Cancelled reason, {
+    Cancelled reason,
+    StackTrace stackTrace, {
     bool forceCancel = false,
   }) async {
     final cancelFuture = _cancelFuture;
@@ -154,7 +172,7 @@ class _ConveyorProcess<BaseState extends Object,
 
     _subscription = null;
     _cancelFuture = null;
-    event._result.cancel(reason, StackTrace.current);
+    event._result.cancel(reason, stackTrace);
     conveyor.onCancel(this);
     onFinish();
   }

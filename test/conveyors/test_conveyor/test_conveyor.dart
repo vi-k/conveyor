@@ -1,17 +1,28 @@
-import 'package:conveyor/conveyor.dart';
+import 'package:conveyor/src/conveyor.dart';
 
 import '../../utils/debug_logger.dart';
 import 'event.dart';
 import 'state.dart';
 
 final class TestConveyor extends Conveyor<TestState, TestEvent>
-    with ExternalSetState<TestState, TestEvent> {
-  final log = TestConveyorDebugLogger(prefix: '$TestConveyor');
+    with
+        ExternalSetState<TestState, TestEvent>,
+        TestSetState<TestState, TestEvent> {
+  final log = TestConveyorDebugLogger(prefix: '[$TestConveyor] ');
 
   TestConveyor(super.initialState);
 
   @override
-  void externalSetState(TestState state) => super.externalSetState(state);
+  void externalSetState(TestState state) {
+    log('externalSetState: $state');
+    super.externalSetState(state);
+  }
+
+  @override
+  void testSetState(TestState state) {
+    log('testSetState: $state');
+    super.testSetState(state);
+  }
 
   String _logIndent(int level) => level == 0 ? '' : '${'>' * level} ';
 

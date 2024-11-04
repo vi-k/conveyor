@@ -1,3 +1,5 @@
+// ignore_for_file: lines_longer_than_80_chars
+
 @Timeout(Duration(seconds: 5))
 library;
 
@@ -52,7 +54,7 @@ void main() {
       test(
         'Simple test',
         () => fakeAsync((async) {
-          final event = TestEvent<TestState, TestState>(
+          final event = TestEvent<TestState>(
             key: 'test',
             (state) async* {
               yield const Preparing();
@@ -85,9 +87,9 @@ void main() {
 
       group('Closing.', () {
         void addEvents() {
-          final initEvent = TestEvent<Initial, TestState>(
+          final initEvent = TestEvent<NotDisposed>(
             key: 'init',
-            // checkStateBeforeProcessing: (state) => state is Initial,
+            checkStateBeforeProcessing: (state) => state is Initial,
             // Отменяем при любом внешнем изменении состояния.
             checkStateOnExternalChange: (state) => false,
             (state) async* {
@@ -115,21 +117,21 @@ void main() {
                   .use((_) => const Working());
             },
           );
-          final incrementAEvent = TestEvent<Working, Working>(
+          final incrementAEvent = TestEvent<Working>(
             key: 'incrementA',
             (state) async* {
               await Future<void>.delayed(const Duration(milliseconds: 100));
               yield state.use((it) => it.copyWith(a: it.a + 1));
             },
           );
-          final incrementBEvent = TestEvent<Working, Working>(
+          final incrementBEvent = TestEvent<Working>(
             key: 'incrementB',
             (state) async* {
               await Future<void>.delayed(const Duration(milliseconds: 100));
               yield state.use((it) => it.copyWith(b: it.b + 1));
             },
           );
-          final finishEvent = TestEvent<TestState, Disposed>(
+          final finishEvent = TestEvent<TestState>(
             key: 'finish',
             checkStateBeforeProcessing: (state) => state is! Disposed,
             checkStateOnExternalChange: (state) => state is! Disposed,
@@ -435,9 +437,9 @@ void main() {
 
       group('externalSetState.', () {
         void addEvents() {
-          final initEvent = TestEvent<Initial, TestState>(
+          final initEvent = TestEvent<NotDisposed>(
             key: 'init',
-            // checkStateBeforeProcessing: (state) => state is Initial,
+            checkStateBeforeProcessing: (state) => state is Initial,
             // Отменяем при любом внешнем изменении состояния.
             checkStateOnExternalChange: (state) => false,
             (state) async* {
@@ -465,21 +467,21 @@ void main() {
                   .use((_) => const Working());
             },
           );
-          final incrementAEvent = TestEvent<Working, Working>(
+          final incrementAEvent = TestEvent<Working>(
             key: 'incrementA',
             (state) async* {
               await Future<void>.delayed(const Duration(milliseconds: 100));
               yield state.use((it) => it.copyWith(a: it.a + 1));
             },
           );
-          final incrementBEvent = TestEvent<Working, Working>(
+          final incrementBEvent = TestEvent<Working>(
             key: 'incrementB',
             (state) async* {
               await Future<void>.delayed(const Duration(milliseconds: 100));
               yield state.use((it) => it.copyWith(b: it.b + 1));
             },
           );
-          final finishEvent = TestEvent<TestState, Disposed>(
+          final finishEvent = TestEvent<TestState>(
             key: 'finish',
             checkStateBeforeProcessing: (state) => state is! Disposed,
             checkStateOnExternalChange: (state) => state is! Disposed,
@@ -507,18 +509,19 @@ void main() {
             expect(async.elapsed, Duration.zero);
 
             expect(conveyor.log.log, [
+              'externalSetState: $Disposed()',
               'state: $Disposed()',
-              '[init] removed $RemovedFromQueueByEventRules()',
-              '[incrementA] removed $RemovedFromQueueByEventRules()',
-              '[incrementB] removed $RemovedFromQueueByEventRules()',
-              '[finish] removed $RemovedFromQueueByEventRules()',
+              '[init] removed $RemovedFromQueueByEventRules(is not $NotDisposed)',
+              '[incrementA] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[incrementB] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
-              '[init] $RemovedFromQueueByEventRules()',
-              '[incrementA] $RemovedFromQueueByEventRules()',
-              '[incrementB] $RemovedFromQueueByEventRules()',
-              '[finish] $RemovedFromQueueByEventRules()',
+              '[init] $RemovedFromQueueByEventRules(is not $NotDisposed)',
+              '[incrementA] $RemovedFromQueueByEventRules(is not $Working)',
+              '[incrementB] $RemovedFromQueueByEventRules(is not $Working)',
+              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -537,18 +540,19 @@ void main() {
 
             expect(conveyor.log.log, [
               '[init] started',
+              'externalSetState: $Disposed()',
               'state: $Disposed()',
-              '[init] cancelled $CancelledByEventRulesOnExternalChange()',
-              '[incrementA] removed $RemovedFromQueueByEventRules()',
-              '[incrementB] removed $RemovedFromQueueByEventRules()',
-              '[finish] removed $RemovedFromQueueByEventRules()',
+              '[init] cancelled $CancelledByEventRules(is not $NotDisposed)',
+              '[incrementA] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[incrementB] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
-              '[init] $CancelledByEventRulesOnExternalChange()',
-              '[incrementA] $RemovedFromQueueByEventRules()',
-              '[incrementB] $RemovedFromQueueByEventRules()',
-              '[finish] $RemovedFromQueueByEventRules()',
+              '[init] $CancelledByEventRules(is not $NotDisposed)',
+              '[incrementA] $RemovedFromQueueByEventRules(is not $Working)',
+              '[incrementB] $RemovedFromQueueByEventRules(is not $Working)',
+              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -568,18 +572,19 @@ void main() {
             expect(conveyor.log.log, [
               '[init] started',
               'state: $Preparing(progress: 0)',
+              'externalSetState: $Disposed()',
               'state: $Disposed()',
-              '[init] cancelled $CancelledByEventRulesOnExternalChange()',
-              '[incrementA] removed $RemovedFromQueueByEventRules()',
-              '[incrementB] removed $RemovedFromQueueByEventRules()',
-              '[finish] removed $RemovedFromQueueByEventRules()',
+              '[init] cancelled $CancelledByEventRules(is not $NotDisposed)',
+              '[incrementA] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[incrementB] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
-              '[init] $CancelledByEventRulesOnExternalChange()',
-              '[incrementA] $RemovedFromQueueByEventRules()',
-              '[incrementB] $RemovedFromQueueByEventRules()',
-              '[finish] $RemovedFromQueueByEventRules()',
+              '[init] $CancelledByEventRules(is not $NotDisposed)',
+              '[incrementA] $RemovedFromQueueByEventRules(is not $Working)',
+              '[incrementB] $RemovedFromQueueByEventRules(is not $Working)',
+              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -600,18 +605,19 @@ void main() {
               '[init] started',
               'state: $Preparing(progress: 0)',
               'state: $Preparing(progress: 50)',
+              'externalSetState: $Disposed()',
               'state: $Disposed()',
-              '[init] cancelled $CancelledByEventRulesOnExternalChange()',
-              '[incrementA] removed $RemovedFromQueueByEventRules()',
-              '[incrementB] removed $RemovedFromQueueByEventRules()',
-              '[finish] removed $RemovedFromQueueByEventRules()',
+              '[init] cancelled $CancelledByEventRules(is not $NotDisposed)',
+              '[incrementA] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[incrementB] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
-              '[init] $CancelledByEventRulesOnExternalChange()',
-              '[incrementA] $RemovedFromQueueByEventRules()',
-              '[incrementB] $RemovedFromQueueByEventRules()',
-              '[finish] $RemovedFromQueueByEventRules()',
+              '[init] $CancelledByEventRules(is not $NotDisposed)',
+              '[incrementA] $RemovedFromQueueByEventRules(is not $Working)',
+              '[incrementB] $RemovedFromQueueByEventRules(is not $Working)',
+              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -633,18 +639,19 @@ void main() {
               'state: $Preparing(progress: 0)',
               'state: $Preparing(progress: 50)',
               'state: $Preparing(progress: 100)',
+              'externalSetState: $Disposed()',
               'state: $Disposed()',
-              '[init] cancelled $CancelledByEventRulesOnExternalChange()',
-              '[incrementA] removed $RemovedFromQueueByEventRules()',
-              '[incrementB] removed $RemovedFromQueueByEventRules()',
-              '[finish] removed $RemovedFromQueueByEventRules()',
+              '[init] cancelled $CancelledByEventRules(is not $NotDisposed)',
+              '[incrementA] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[incrementB] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
-              '[init] $CancelledByEventRulesOnExternalChange()',
-              '[incrementA] $RemovedFromQueueByEventRules()',
-              '[incrementB] $RemovedFromQueueByEventRules()',
-              '[finish] $RemovedFromQueueByEventRules()',
+              '[init] $CancelledByEventRules(is not $NotDisposed)',
+              '[incrementA] $RemovedFromQueueByEventRules(is not $Working)',
+              '[incrementB] $RemovedFromQueueByEventRules(is not $Working)',
+              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -669,18 +676,18 @@ void main() {
               'state: $Working(a: 0, b: 0)',
               '[init] done',
               '[incrementA] started',
+              'externalSetState: $Disposed()',
               'state: $Disposed()',
-              // ignore: lines_longer_than_80_chars
-              '[incrementA] cancelled $CancelledByEventRulesOnExternalChange()',
-              '[incrementB] removed $RemovedFromQueueByEventRules()',
-              '[finish] removed $RemovedFromQueueByEventRules()',
+              '[incrementA] cancelled $CancelledByEventRules(is not $Working)',
+              '[incrementB] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
               '[init] completed',
-              '[incrementA] $CancelledByEventRulesOnExternalChange()',
-              '[incrementB] $RemovedFromQueueByEventRules()',
-              '[finish] $RemovedFromQueueByEventRules()',
+              '[incrementA] $CancelledByEventRules(is not $Working)',
+              '[incrementB] $RemovedFromQueueByEventRules(is not $Working)',
+              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -708,17 +715,17 @@ void main() {
               'state: $Working(a: 1, b: 0)',
               '[incrementA] done',
               '[incrementB] started',
+              'externalSetState: $Disposed()',
               'state: $Disposed()',
-              // ignore: lines_longer_than_80_chars
-              '[incrementB] cancelled $CancelledByEventRulesOnExternalChange()',
-              '[finish] removed $RemovedFromQueueByEventRules()',
+              '[incrementB] cancelled $CancelledByEventRules(is not $Working)',
+              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
               '[init] completed',
               '[incrementA] completed',
-              '[incrementB] $CancelledByEventRulesOnExternalChange()',
-              '[finish] $RemovedFromQueueByEventRules()',
+              '[incrementB] $CancelledByEventRules(is not $Working)',
+              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -749,15 +756,16 @@ void main() {
               'state: $Working(a: 1, b: 1)',
               '[incrementB] done',
               '[finish] started',
+              'externalSetState: $Disposed()',
               'state: $Disposed()',
-              '[finish] cancelled $CancelledByEventRulesOnExternalChange()',
+              '[finish] cancelled $CancelledByEventRules(checkStateOnExternalChange)',
             ]);
 
             expect(resultsToStrings(), [
               '[init] completed',
               '[incrementA] completed',
               '[incrementB] completed',
-              '[finish] $CancelledByEventRulesOnExternalChange()',
+              '[finish] $CancelledByEventRules(checkStateOnExternalChange)',
             ]);
           }),
         );
@@ -790,6 +798,7 @@ void main() {
               '[finish] started',
               'state: $Disposed()',
               '[finish] done',
+              'externalSetState: $Disposed()',
               'state: $Disposed()',
             ]);
 
@@ -822,6 +831,7 @@ void main() {
               'state: $Working(a: 0, b: 0)',
               '[init] done',
               '[incrementA] started',
+              'externalSetState: $Working(a: 10, b: 10)',
               'state: $Working(a: 10, b: 10)',
               'state: $Working(a: 11, b: 10)',
               '[incrementA] done',
@@ -865,6 +875,7 @@ void main() {
               'state: $Working(a: 1, b: 0)',
               '[incrementA] done',
               '[incrementB] started',
+              'externalSetState: $Working(a: 10, b: 10)',
               'state: $Working(a: 10, b: 10)',
               'state: $Working(a: 10, b: 11)',
               '[incrementB] done',
@@ -885,7 +896,7 @@ void main() {
         test(
           'Extremal test',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'extremalTest',
               (state) async* {
                 conveyor.externalSetState(const Working());
@@ -907,8 +918,10 @@ void main() {
 
             expect(conveyor.log.log, [
               '[extremalTest] started',
+              'externalSetState: $Working(a: 0, b: 0)',
               'state: $Working(a: 0, b: 0)',
               'state: $Working(a: 1, b: 1)',
+              'externalSetState: $Working(a: 2, b: 2)',
               'state: $Working(a: 2, b: 2)',
               '[extremalTest] done',
             ]);
@@ -922,15 +935,15 @@ void main() {
 
       group('WorkingState.', () {
         void addEvents() {
-          final event1 = TestEvent<Initial, TestState>(
+          final event1 = TestEvent<Initial>(
             key: 'test1',
             (state) async* {},
           );
-          final event2 = TestEvent<Preparing, TestState>(
+          final event2 = TestEvent<Preparing>(
             key: 'test2',
             (state) async* {},
           );
-          final event3 = TestEvent<Working, TestState>(
+          final event3 = TestEvent<Working>(
             key: 'test3',
             (state) async* {},
           );
@@ -950,14 +963,14 @@ void main() {
             expect(conveyor.log.log, [
               '[test1] started',
               '[test1] done',
-              '[test2] removed $RemovedFromQueueByEventRules()',
-              '[test3] removed $RemovedFromQueueByEventRules()',
+              '[test2] removed $RemovedFromQueueByEventRules(is not $Preparing)',
+              '[test3] removed $RemovedFromQueueByEventRules(is not $Working)',
             ]);
 
             expect(resultsToStrings(), [
               '[test1] completed',
-              '[test2] $RemovedFromQueueByEventRules()',
-              '[test3] $RemovedFromQueueByEventRules()',
+              '[test2] $RemovedFromQueueByEventRules(is not $Preparing)',
+              '[test3] $RemovedFromQueueByEventRules(is not $Working)',
             ]);
           }),
         );
@@ -970,17 +983,18 @@ void main() {
             async.waitFuture(awaitResults());
 
             expect(conveyor.log.log, [
+              'externalSetState: $Preparing(progress: 0)',
               'state: $Preparing(progress: 0)',
-              '[test1] removed $RemovedFromQueueByEventRules()',
+              '[test1] removed $RemovedFromQueueByEventRules(is not $Initial)',
               '[test2] started',
               '[test2] done',
-              '[test3] removed $RemovedFromQueueByEventRules()',
+              '[test3] removed $RemovedFromQueueByEventRules(is not $Working)',
             ]);
 
             expect(resultsToStrings(), [
-              '[test1] $RemovedFromQueueByEventRules()',
+              '[test1] $RemovedFromQueueByEventRules(is not $Initial)',
               '[test2] completed',
-              '[test3] $RemovedFromQueueByEventRules()',
+              '[test3] $RemovedFromQueueByEventRules(is not $Working)',
             ]);
           }),
         );
@@ -993,16 +1007,17 @@ void main() {
             async.waitFuture(awaitResults());
 
             expect(conveyor.log.log, [
+              'externalSetState: $Working(a: 0, b: 0)',
               'state: $Working(a: 0, b: 0)',
-              '[test1] removed $RemovedFromQueueByEventRules()',
-              '[test2] removed $RemovedFromQueueByEventRules()',
+              '[test1] removed $RemovedFromQueueByEventRules(is not $Initial)',
+              '[test2] removed $RemovedFromQueueByEventRules(is not $Preparing)',
               '[test3] started',
               '[test3] done',
             ]);
 
             expect(resultsToStrings(), [
-              '[test1] $RemovedFromQueueByEventRules()',
-              '[test2] $RemovedFromQueueByEventRules()',
+              '[test1] $RemovedFromQueueByEventRules(is not $Initial)',
+              '[test2] $RemovedFromQueueByEventRules(is not $Preparing)',
               '[test3] completed',
             ]);
           }),
@@ -1016,16 +1031,17 @@ void main() {
             async.waitFuture(awaitResults());
 
             expect(conveyor.log.log, [
+              'externalSetState: $Disposed()',
               'state: $Disposed()',
-              '[test1] removed $RemovedFromQueueByEventRules()',
-              '[test2] removed $RemovedFromQueueByEventRules()',
-              '[test3] removed $RemovedFromQueueByEventRules()',
+              '[test1] removed $RemovedFromQueueByEventRules(is not $Initial)',
+              '[test2] removed $RemovedFromQueueByEventRules(is not $Preparing)',
+              '[test3] removed $RemovedFromQueueByEventRules(is not $Working)',
             ]);
 
             expect(resultsToStrings(), [
-              '[test1] $RemovedFromQueueByEventRules()',
-              '[test2] $RemovedFromQueueByEventRules()',
-              '[test3] $RemovedFromQueueByEventRules()',
+              '[test1] $RemovedFromQueueByEventRules(is not $Initial)',
+              '[test2] $RemovedFromQueueByEventRules(is not $Preparing)',
+              '[test3] $RemovedFromQueueByEventRules(is not $Working)',
             ]);
           }),
         );
@@ -1033,19 +1049,20 @@ void main() {
         test(
           'Initial > Preparing > Working > Disposed',
           () => fakeAsync((async) {
-            final event1 = TestEvent<Initial, TestState>(
+            final event1 = TestEvent<InitialAndPreparing>(
               key: 'test1',
+              checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
                 yield const Preparing();
               },
             );
-            final event2 = TestEvent<Preparing, TestState>(
+            final event2 = TestEvent<PreparingAndWorking>(
               key: 'test2',
               (state) async* {
                 yield const Working();
               },
             );
-            final event3 = TestEvent<Working, TestState>(
+            final event3 = TestEvent<WorkingAndDisposed>(
               key: 'test3',
               (state) async* {
                 yield const Disposed();
@@ -1082,627 +1099,773 @@ void main() {
 
       group('State provider.', () {
         test(
-          'value',
+          'check event rules - cancel',
           () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
+            final event1 = TestEvent<Initial>(
+              key: 'test1',
               (state) async* {
-                yield const Preparing();
+                conveyor.testSetState(const Preparing());
+                // Nothing happens because there is no consumer.
+                state.test((it) => false).isA<Disposed>().map((it) => it);
+              },
+            );
+            final event2 = TestEvent<Preparing>(
+              key: 'test2',
+              (state) async* {
+                conveyor.testSetState(const Working());
+                state.check();
+              },
+            );
+            final event3 = TestEvent<Working>(
+              key: 'test3',
+              (state) async* {
+                conveyor.testSetState(const Disposed());
                 yield state.value;
               },
             );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              '[test] cancelled $CancelledByCheckState(is not Initial)',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] $CancelledByCheckState(is not Initial)',
-            ]);
-          }),
-        );
-
-        test(
-          'use',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
+            final event4 = TestEvent<Disposed>(
+              key: 'test4',
               (state) async* {
-                yield const Preparing();
+                conveyor.testSetState(const Initial());
                 yield state.use((it) => it);
               },
             );
 
-            conveyor.queue.add(event).saveToResults(results);
+            conveyor.queue
+              ..add(event1).saveToResults(results)
+              ..add(event2).saveToResults(results)
+              ..add(event3).saveToResults(results)
+              ..add(event4).saveToResults(results);
 
             async.waitFuture(awaitResults());
 
             expect(conveyor.log.log, [
-              '[test] started',
+              '[test1] started',
+              'testSetState: $Preparing(progress: 0)',
               'state: $Preparing(progress: 0)',
-              '[test] cancelled $CancelledByCheckState(is not Initial)',
+              '[test1] done',
+              '[test2] started',
+              'testSetState: $Working(a: 0, b: 0)',
+              'state: $Working(a: 0, b: 0)',
+              '[test2] cancelled $CancelledByEventRules(is not $Preparing)',
+              '[test3] started',
+              'testSetState: $Disposed()',
+              'state: $Disposed()',
+              '[test3] cancelled $CancelledByEventRules(is not $Working)',
+              '[test4] started',
+              'testSetState: $Initial()',
+              'state: $Initial()',
+              '[test4] cancelled $CancelledByEventRules(is not $Disposed)',
             ]);
 
             expect(resultsToStrings(), [
-              '[test] $CancelledByCheckState(is not Initial)',
+              '[test1] completed',
+              '[test2] $CancelledByEventRules(is not $Preparing)',
+              '[test3] $CancelledByEventRules(is not $Working)',
+              '[test4] $CancelledByEventRules(is not $Disposed)',
             ]);
           }),
         );
 
         test(
-          'test.value',
+          'check event rules - ok',
           () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
+            final event1 = TestEvent<Initial>(
+              key: 'test1',
               (state) async* {
-                yield const Preparing();
-                yield state.test((it) => true).value;
+                // Nothing happens because there is no consumer.
+                state.test((it) => false).isA<Disposed>().map((it) => it);
+              },
+            );
+            final event2 = TestEvent<Initial>(
+              key: 'test2',
+              (state) async* {
+                state.check();
+              },
+            );
+            final event3 = TestEvent<Initial>(
+              key: 'test3',
+              (state) async* {
+                yield state.value;
+              },
+            );
+            final event4 = TestEvent<Initial>(
+              key: 'test4',
+              (state) async* {
+                yield state.use((it) => it);
               },
             );
 
-            conveyor.queue.add(event).saveToResults(results);
+            conveyor.queue
+              ..add(event1).saveToResults(results)
+              ..add(event2).saveToResults(results)
+              ..add(event3).saveToResults(results)
+              ..add(event4).saveToResults(results);
 
             async.waitFuture(awaitResults());
 
             expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              '[test] cancelled $CancelledByCheckState(is not Initial)',
+              '[test1] started',
+              '[test1] done',
+              '[test2] started',
+              '[test2] done',
+              '[test3] started',
+              'state: $Initial()',
+              '[test3] done',
+              '[test4] started',
+              'state: $Initial()',
+              '[test4] done',
             ]);
 
             expect(resultsToStrings(), [
-              '[test] $CancelledByCheckState(is not Initial)',
+              '[test1] completed',
+              '[test2] completed',
+              '[test3] completed',
+              '[test4] completed',
             ]);
           }),
         );
 
         test(
-          'test.use',
+          'test - cancel',
           () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
+            final event1 = TestEvent<Initial>(
+              key: 'test1',
               (state) async* {
-                yield const Preparing();
+                conveyor.testSetState(const Preparing());
+                // Nothing happens because there is no consumer.
+                state.test((it) => false);
+              },
+            );
+            final event2 = TestEvent<Preparing>(
+              key: 'test2',
+              (state) async* {
+                conveyor.testSetState(const Working());
+                state.test((it) => true).check();
+              },
+            );
+            final event3 = TestEvent<Working>(
+              key: 'test3',
+              (state) async* {
+                conveyor.testSetState(const Disposed());
+                yield state.test((it) => true).value;
+              },
+            );
+            final event4 = TestEvent<Disposed>(
+              key: 'test4',
+              (state) async* {
+                conveyor.testSetState(const Initial());
                 yield state.test((it) => true).use((it) => it);
               },
             );
 
-            conveyor.queue.add(event).saveToResults(results);
+            conveyor.queue
+              ..add(event1).saveToResults(results)
+              ..add(event2).saveToResults(results)
+              ..add(event3).saveToResults(results)
+              ..add(event4).saveToResults(results);
 
             async.waitFuture(awaitResults());
 
             expect(conveyor.log.log, [
-              '[test] started',
+              '[test1] started',
+              'testSetState: $Preparing(progress: 0)',
               'state: $Preparing(progress: 0)',
-              '[test] cancelled $CancelledByCheckState(is not Initial)',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] $CancelledByCheckState(is not Initial)',
-            ]);
-          }),
-        );
-
-        test(
-          'map.value',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state.map<Working>((_) => const Working()).value;
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              '[test] cancelled $CancelledByCheckState(is not Initial)',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] $CancelledByCheckState(is not Initial)',
-            ]);
-          }),
-        );
-
-        test(
-          'map.use',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state
-                    .map<Working>((_) => const Working())
-                    .use((it) => it);
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              '[test] cancelled $CancelledByCheckState(is not Initial)',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] $CancelledByCheckState(is not Initial)',
-            ]);
-          }),
-        );
-
-        test(
-          'strongMap.value',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state.strongMap((it) => it).value;
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              '[test] cancelled $CancelledByCheckState(is not Initial)',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] $CancelledByCheckState(is not Initial)',
-            ]);
-          }),
-        );
-
-        test(
-          'strongMap.use',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state.strongMap((it) => it).use((it) => it);
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              '[test] cancelled $CancelledByCheckState(is not Initial)',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] $CancelledByCheckState(is not Initial)',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.value',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state.isA<Preparing>().value;
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.use',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state.isA<Preparing>().use((it) => it);
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.test.value',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state
-                    .isA<Preparing>()
-                    .test((it) => it.progress == 0)
-                    .value;
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.test.use',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state
-                    .isA<Preparing>()
-                    .test((it) => it.progress == 0)
-                    .use((it) => it);
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.map.value',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state
-                    .isA<Preparing>()
-                    .map<Working>((it) => const Working())
-                    .value;
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
+              '[test1] done',
+              '[test2] started',
+              'testSetState: $Working(a: 0, b: 0)',
               'state: $Working(a: 0, b: 0)',
-              '[test] done',
+              '[test2] cancelled $CancelledByEventRules(is not $Preparing)',
+              '[test3] started',
+              'testSetState: $Disposed()',
+              'state: $Disposed()',
+              '[test3] cancelled $CancelledByEventRules(is not $Working)',
+              '[test4] started',
+              'testSetState: $Initial()',
+              'state: $Initial()',
+              '[test4] cancelled $CancelledByEventRules(is not $Disposed)',
             ]);
 
             expect(resultsToStrings(), [
-              '[test] completed',
+              '[test1] completed',
+              '[test2] $CancelledByEventRules(is not $Preparing)',
+              '[test3] $CancelledByEventRules(is not $Working)',
+              '[test4] $CancelledByEventRules(is not $Disposed)',
             ]);
           }),
         );
 
         test(
-          'isA.map.use',
+          'test - ok',
           () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
+            final event1 = TestEvent<Initial>(
+              key: 'test1',
               (state) async* {
-                yield const Preparing();
-                yield state
-                    .isA<Preparing>()
-                    .map<Working>((it) => const Working())
-                    .use((it) => it);
+                // Nothing happens because there is no consumer.
+                state.test((it) => false);
+              },
+            );
+            final event2 = TestEvent<Initial>(
+              key: 'test2',
+              (state) async* {
+                state.test((it) => true).check();
+              },
+            );
+            final event3 = TestEvent<Initial>(
+              key: 'test3',
+              (state) async* {
+                yield state.test((it) => true).value;
+              },
+            );
+            final event4 = TestEvent<Initial>(
+              key: 'test4',
+              (state) async* {
+                yield state.test((it) => true).use((it) => it);
               },
             );
 
-            conveyor.queue.add(event).saveToResults(results);
+            conveyor.queue
+              ..add(event1).saveToResults(results)
+              ..add(event2).saveToResults(results)
+              ..add(event3).saveToResults(results)
+              ..add(event4).saveToResults(results);
 
             async.waitFuture(awaitResults());
 
             expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Working(a: 0, b: 0)',
-              '[test] done',
+              '[test1] started',
+              '[test1] done',
+              '[test2] started',
+              '[test2] done',
+              '[test3] started',
+              'state: $Initial()',
+              '[test3] done',
+              '[test4] started',
+              'state: $Initial()',
+              '[test4] done',
             ]);
 
             expect(resultsToStrings(), [
-              '[test] completed',
+              '[test1] completed',
+              '[test2] completed',
+              '[test3] completed',
+              '[test4] completed',
             ]);
           }),
         );
 
         test(
-          'isA.strongMap.value',
+          'isA - cancel',
           () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
+            final event1 = TestEvent<Initial>(
+              key: 'test1',
               (state) async* {
-                yield const Preparing();
+                conveyor.testSetState(const Preparing());
+                // Nothing happens because there is no consumer.
+                state.isA<Preparing>();
+              },
+            );
+            final event2 = TestEvent<Preparing>(
+              key: 'test2',
+              (state) async* {
+                conveyor.testSetState(const Working());
+                state.isA<Working>().check();
+              },
+            );
+            final event3 = TestEvent<Working>(
+              key: 'test3',
+              (state) async* {
+                conveyor.testSetState(const Disposed());
+                yield state.isA<Disposed>().value as Working;
+              },
+            );
+            final event4 = TestEvent<Disposed>(
+              key: 'test4',
+              (state) async* {
+                conveyor.testSetState(const Initial());
+                yield state.isA<Initial>().use((it) => const Disposed());
+              },
+            );
+
+            conveyor.queue
+              ..add(event1).saveToResults(results)
+              ..add(event2).saveToResults(results)
+              ..add(event3).saveToResults(results)
+              ..add(event4).saveToResults(results);
+
+            async.waitFuture(awaitResults());
+
+            expect(conveyor.log.log, [
+              '[test1] started',
+              'testSetState: $Preparing(progress: 0)',
+              'state: $Preparing(progress: 0)',
+              '[test1] done',
+              '[test2] started',
+              'testSetState: $Working(a: 0, b: 0)',
+              'state: $Working(a: 0, b: 0)',
+              '[test2] cancelled $CancelledByEventRules(is not $Preparing)',
+              '[test3] started',
+              'testSetState: $Disposed()',
+              'state: $Disposed()',
+              '[test3] cancelled $CancelledByEventRules(is not $Working)',
+              '[test4] started',
+              'testSetState: $Initial()',
+              'state: $Initial()',
+              '[test4] cancelled $CancelledByEventRules(is not $Disposed)',
+            ]);
+
+            expect(resultsToStrings(), [
+              '[test1] completed',
+              '[test2] $CancelledByEventRules(is not $Preparing)',
+              '[test3] $CancelledByEventRules(is not $Working)',
+              '[test4] $CancelledByEventRules(is not $Disposed)',
+            ]);
+          }),
+        );
+
+        test(
+          'isA - ok',
+          () => fakeAsync((async) {
+            final event1 = TestEvent<Initial>(
+              key: 'test1',
+              (state) async* {
+                // Nothing happens because there is no consumer.
+                state.isA<Preparing>();
+              },
+            );
+            final event2 = TestEvent<Initial>(
+              key: 'test2',
+              (state) async* {
+                state.isA<Initial>().check();
+              },
+            );
+            final event3 = TestEvent<Initial>(
+              key: 'test3',
+              (state) async* {
+                yield state.isA<Initial>().value;
+              },
+            );
+            final event4 = TestEvent<Initial>(
+              key: 'test4',
+              (state) async* {
+                yield state.isA<Initial>().use((it) => it);
+              },
+            );
+
+            conveyor.queue
+              ..add(event1).saveToResults(results)
+              ..add(event2).saveToResults(results)
+              ..add(event3).saveToResults(results)
+              ..add(event4).saveToResults(results);
+
+            async.waitFuture(awaitResults());
+
+            expect(conveyor.log.log, [
+              '[test1] started',
+              '[test1] done',
+              '[test2] started',
+              '[test2] done',
+              '[test3] started',
+              'state: $Initial()',
+              '[test3] done',
+              '[test4] started',
+              'state: $Initial()',
+              '[test4] done',
+            ]);
+
+            expect(resultsToStrings(), [
+              '[test1] completed',
+              '[test2] completed',
+              '[test3] completed',
+              '[test4] completed',
+            ]);
+          }),
+        );
+
+        test(
+          'map - cancel',
+          () => fakeAsync((async) {
+            final event1 = TestEvent<Initial>(
+              key: 'test1',
+              (state) async* {
+                conveyor.testSetState(const Preparing());
+                // Nothing happens because there is no consumer.
+                state.map<Initial>((it) => it);
+              },
+            );
+            final event2 = TestEvent<Preparing>(
+              key: 'test2',
+              (state) async* {
+                conveyor.testSetState(const Working());
+                state.map<Preparing>((it) => it).check();
+              },
+            );
+            final event3 = TestEvent<Working>(
+              key: 'test3',
+              (state) async* {
+                conveyor.testSetState(const Disposed());
+                yield state.map<Working>((it) => it).value;
+              },
+            );
+            final event4 = TestEvent<Disposed>(
+              key: 'test4',
+              (state) async* {
+                conveyor.testSetState(const Initial());
+                yield state.map<Disposed>((it) => it).use((it) => it);
+              },
+            );
+
+            conveyor.queue
+              ..add(event1).saveToResults(results)
+              ..add(event2).saveToResults(results)
+              ..add(event3).saveToResults(results)
+              ..add(event4).saveToResults(results);
+
+            async.waitFuture(awaitResults());
+
+            expect(conveyor.log.log, [
+              '[test1] started',
+              'testSetState: $Preparing(progress: 0)',
+              'state: $Preparing(progress: 0)',
+              '[test1] done',
+              '[test2] started',
+              'testSetState: $Working(a: 0, b: 0)',
+              'state: $Working(a: 0, b: 0)',
+              '[test2] cancelled $CancelledByEventRules(is not $Preparing)',
+              '[test3] started',
+              'testSetState: $Disposed()',
+              'state: $Disposed()',
+              '[test3] cancelled $CancelledByEventRules(is not $Working)',
+              '[test4] started',
+              'testSetState: $Initial()',
+              'state: $Initial()',
+              '[test4] cancelled $CancelledByEventRules(is not $Disposed)',
+            ]);
+
+            expect(resultsToStrings(), [
+              '[test1] completed',
+              '[test2] $CancelledByEventRules(is not $Preparing)',
+              '[test3] $CancelledByEventRules(is not $Working)',
+              '[test4] $CancelledByEventRules(is not $Disposed)',
+            ]);
+          }),
+        );
+
+        test(
+          'map - ok',
+          () => fakeAsync((async) {
+            final event1 = TestEvent<Initial>(
+              key: 'test1',
+              (state) async* {
+                // Nothing happens because there is no consumer.
+                state.map<Initial>((it) => it);
+              },
+            );
+            final event2 = TestEvent<Initial>(
+              key: 'test2',
+              (state) async* {
+                state.map<Initial>((it) => it).check();
+              },
+            );
+            final event3 = TestEvent<Initial>(
+              key: 'test3',
+              (state) async* {
+                yield state.map<Initial>((it) => it).value;
+              },
+            );
+            final event4 = TestEvent<Initial>(
+              key: 'test4',
+              (state) async* {
+                yield state.map<Initial>((it) => it).use((it) => it);
+              },
+            );
+
+            conveyor.queue
+              ..add(event1).saveToResults(results)
+              ..add(event2).saveToResults(results)
+              ..add(event3).saveToResults(results)
+              ..add(event4).saveToResults(results);
+
+            async.waitFuture(awaitResults());
+
+            expect(conveyor.log.log, [
+              '[test1] started',
+              '[test1] done',
+              '[test2] started',
+              '[test2] done',
+              '[test3] started',
+              'state: $Initial()',
+              '[test3] done',
+              '[test4] started',
+              'state: $Initial()',
+              '[test4] done',
+            ]);
+
+            expect(resultsToStrings(), [
+              '[test1] completed',
+              '[test2] completed',
+              '[test3] completed',
+              '[test4] completed',
+            ]);
+          }),
+        );
+
+        test(
+          'isA.test - cancel',
+          () => fakeAsync((async) {
+            final event1 = TestEvent<Initial>(
+              key: 'test1',
+              (state) async* {
+                conveyor.testSetState(const Preparing());
+                // Nothing happens because there is no consumer.
+                state.isA<Preparing>().test((it) => false);
+              },
+            );
+            final event2 = TestEvent<Preparing>(
+              key: 'test2',
+              (state) async* {
+                conveyor.testSetState(const Working());
+                state.isA<TestState>().test((it) => true).check();
+              },
+            );
+            final event3 = TestEvent<Working>(
+              key: 'test3',
+              (state) async* {
+                conveyor.testSetState(const Disposed());
+                yield state.isA<TestState>().test((it) => true).value
+                    as Working;
+              },
+            );
+            final event4 = TestEvent<Disposed>(
+              key: 'test4',
+              (state) async* {
+                conveyor.testSetState(const Initial());
                 yield state
                     .isA<Preparing>()
-                    .strongMap((it) => it.copyWith(progress: 100))
+                    .test((it) => true)
+                    .use((it) => const Disposed());
+              },
+            );
+
+            conveyor.queue
+              ..add(event1).saveToResults(results)
+              ..add(event2).saveToResults(results)
+              ..add(event3).saveToResults(results)
+              ..add(event4).saveToResults(results);
+
+            async.waitFuture(awaitResults());
+
+            expect(conveyor.log.log, [
+              '[test1] started',
+              'testSetState: $Preparing(progress: 0)',
+              'state: $Preparing(progress: 0)',
+              '[test1] done',
+              '[test2] started',
+              'testSetState: $Working(a: 0, b: 0)',
+              'state: $Working(a: 0, b: 0)',
+              '[test2] cancelled $CancelledByEventRules(is not $Preparing)',
+              '[test3] started',
+              'testSetState: $Disposed()',
+              'state: $Disposed()',
+              '[test3] cancelled $CancelledByEventRules(is not $Working)',
+              '[test4] started',
+              'testSetState: $Initial()',
+              'state: $Initial()',
+              '[test4] cancelled $CancelledByEventRules(is not $Disposed)',
+            ]);
+
+            expect(resultsToStrings(), [
+              '[test1] completed',
+              '[test2] $CancelledByEventRules(is not $Preparing)',
+              '[test3] $CancelledByEventRules(is not $Working)',
+              '[test4] $CancelledByEventRules(is not $Disposed)',
+            ]);
+          }),
+        );
+
+        test(
+          'isA.test - ok',
+          () => fakeAsync((async) {
+            final event1 = TestEvent<Initial>(
+              key: 'test1',
+              (state) async* {
+                // Nothing happens because there is no consumer.
+                state.isA<Initial>().test((it) => false);
+              },
+            );
+            final event2 = TestEvent<Initial>(
+              key: 'test2',
+              (state) async* {
+                state.isA<Initial>().test((it) => true).check();
+              },
+            );
+            final event3 = TestEvent<Initial>(
+              key: 'test3',
+              (state) async* {
+                yield state.isA<Initial>().test((it) => true).value;
+              },
+            );
+            final event4 = TestEvent<Initial>(
+              key: 'test4',
+              (state) async* {
+                yield state.isA<Initial>().test((it) => true).use((it) => it);
+              },
+            );
+
+            conveyor.queue
+              ..add(event1).saveToResults(results)
+              ..add(event2).saveToResults(results)
+              ..add(event3).saveToResults(results)
+              ..add(event4).saveToResults(results);
+
+            async.waitFuture(awaitResults());
+
+            expect(conveyor.log.log, [
+              '[test1] started',
+              '[test1] done',
+              '[test2] started',
+              '[test2] done',
+              '[test3] started',
+              'state: $Initial()',
+              '[test3] done',
+              '[test4] started',
+              'state: $Initial()',
+              '[test4] done',
+            ]);
+
+            expect(resultsToStrings(), [
+              '[test1] completed',
+              '[test2] completed',
+              '[test3] completed',
+              '[test4] completed',
+            ]);
+          }),
+        );
+
+        test(
+          'isA.isA.isA - cancel',
+          () => fakeAsync((async) {
+            final event1 = TestEvent<Initial>(
+              key: 'test1',
+              (state) async* {
+                // Nothing happens because there is no consumer.
+                state.isA<Initial>().isA<Working>().isA<Initial>();
+              },
+            );
+            final event2 = TestEvent<Initial>(
+              key: 'test2',
+              (state) async* {
+                state.isA<Initial>().isA<Working>().isA<Initial>().check();
+              },
+            );
+            final event3 = TestEvent<Initial>(
+              key: 'test3',
+              (state) async* {
+                yield state.isA<Initial>().isA<Working>().isA<Initial>().value;
+              },
+            );
+            final event4 = TestEvent<Initial>(
+              key: 'test4',
+              (state) async* {
+                yield state
+                    .isA<Initial>()
+                    .isA<Working>()
+                    .isA<Initial>()
+                    .use((it) => it);
+              },
+            );
+
+            conveyor.queue
+              ..add(event1).saveToResults(results)
+              ..add(event2).saveToResults(results)
+              ..add(event3).saveToResults(results)
+              ..add(event4).saveToResults(results);
+
+            async.waitFuture(awaitResults());
+
+            expect(conveyor.log.log, [
+              '[test1] started',
+              '[test1] done',
+              '[test2] started',
+              '[test2] cancelled $CancelledByCheckState(is not $Working)',
+              '[test3] started',
+              '[test3] cancelled $CancelledByCheckState(is not $Working)',
+              '[test4] started',
+              '[test4] cancelled $CancelledByCheckState(is not $Working)',
+            ]);
+
+            expect(resultsToStrings(), [
+              '[test1] completed',
+              '[test2] $CancelledByCheckState(is not $Working)',
+              '[test3] $CancelledByCheckState(is not $Working)',
+              '[test4] $CancelledByCheckState(is not $Working)',
+            ]);
+          }),
+        );
+
+        test(
+          'isA.isA.isA - cancel',
+          () => fakeAsync((async) {
+            final event1 = TestEvent<Initial>(
+              key: 'test1',
+              (state) async* {
+                // Nothing happens because there is no consumer.
+                state.isA<Initial>().isA<TestState>().isA<Initial>();
+              },
+            );
+            final event2 = TestEvent<Initial>(
+              key: 'test2',
+              (state) async* {
+                state.isA<Initial>().isA<TestState>().isA<Initial>().check();
+              },
+            );
+            final event3 = TestEvent<Initial>(
+              key: 'test3',
+              (state) async* {
+                yield state
+                    .isA<Initial>()
+                    .isA<TestState>()
+                    .isA<Initial>()
                     .value;
               },
             );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 100)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.strongMap.use',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
+            final event4 = TestEvent<Initial>(
+              key: 'test4',
               (state) async* {
-                yield const Preparing();
                 yield state
-                    .isA<Preparing>()
-                    .strongMap((it) => it.copyWith(progress: 100))
+                    .isA<Initial>()
+                    .isA<TestState>()
+                    .isA<Initial>()
                     .use((it) => it);
               },
             );
 
-            conveyor.queue.add(event).saveToResults(results);
+            conveyor.queue
+              ..add(event1).saveToResults(results)
+              ..add(event2).saveToResults(results)
+              ..add(event3).saveToResults(results)
+              ..add(event4).saveToResults(results);
 
             async.waitFuture(awaitResults());
 
             expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 100)',
-              '[test] done',
+              '[test1] started',
+              '[test1] done',
+              '[test2] started',
+              '[test2] done',
+              '[test3] started',
+              'state: $Initial()',
+              '[test3] done',
+              '[test4] started',
+              'state: $Initial()',
+              '[test4] done',
             ]);
 
             expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.isA<Preparing>.value',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state.isA<Preparing>().isA<Preparing>().value;
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.isA<Preparing>.use',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state.isA<Preparing>().isA<Preparing>().use((it) => it);
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.isA<Working>.value',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state.isA<Preparing>().isA<Working>().value;
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              '[test] cancelled $CancelledByCheckState(is not Working)',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] $CancelledByCheckState(is not Working)',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.isA<Working>.use',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state.isA<Preparing>().isA<Working>().use((it) => it);
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              '[test] cancelled $CancelledByCheckState(is not Working)',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] $CancelledByCheckState(is not Working)',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.isA<TestState>.value',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state.isA<Preparing>().isA<TestState>().value;
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.isA<TestState>.use',
-          () => fakeAsync((async) {
-            final event = TestEvent<Initial, TestState>(
-              key: 'test',
-              (state) async* {
-                yield const Preparing();
-                yield state.isA<Preparing>().isA<TestState>().use((it) => it);
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
+              '[test1] completed',
+              '[test2] completed',
+              '[test3] completed',
+              '[test4] completed',
             ]);
           }),
         );
@@ -1712,7 +1875,7 @@ void main() {
         test(
           'value',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -1741,7 +1904,7 @@ void main() {
         test(
           'use',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -1770,7 +1933,7 @@ void main() {
         test(
           'test.value',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -1799,7 +1962,7 @@ void main() {
         test(
           'test.use',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -1826,127 +1989,9 @@ void main() {
         );
 
         test(
-          'map.value',
-          () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
-              key: 'test',
-              checkStateBeforeProcessing: (state) => state is Initial,
-              (state) async* {
-                yield const Preparing();
-                yield state.map<Working>((_) => const Working()).value;
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Working(a: 0, b: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'map.use',
-          () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
-              key: 'test',
-              checkStateBeforeProcessing: (state) => state is Initial,
-              (state) async* {
-                yield const Preparing();
-                yield state
-                    .map<Working>((_) => const Working())
-                    .use((it) => it);
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Working(a: 0, b: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'strongMap.value',
-          () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
-              key: 'test',
-              checkStateBeforeProcessing: (state) => state is Initial,
-              (state) async* {
-                yield const Preparing();
-                yield state.strongMap((it) => it).value;
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'strongMap.use',
-          () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
-              key: 'test',
-              checkStateBeforeProcessing: (state) => state is Initial,
-              (state) async* {
-                yield const Preparing();
-                yield state.strongMap((it) => it).use((it) => it);
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
           'isA.value',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -1975,7 +2020,7 @@ void main() {
         test(
           'isA.use',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -2004,7 +2049,7 @@ void main() {
         test(
           'isA.test.value',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -2036,7 +2081,7 @@ void main() {
         test(
           'isA.test.use',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -2066,137 +2111,9 @@ void main() {
         );
 
         test(
-          'isA.map.value',
-          () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
-              key: 'test',
-              checkStateBeforeProcessing: (state) => state is Initial,
-              (state) async* {
-                yield const Preparing();
-                yield state
-                    .isA<Preparing>()
-                    .map<Working>((it) => const Working())
-                    .value;
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Working(a: 0, b: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.map.use',
-          () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
-              key: 'test',
-              checkStateBeforeProcessing: (state) => state is Initial,
-              (state) async* {
-                yield const Preparing();
-                yield state
-                    .isA<Preparing>()
-                    .map<Working>((it) => const Working())
-                    .use((it) => it);
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Working(a: 0, b: 0)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.strongMap.value',
-          () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
-              key: 'test',
-              checkStateBeforeProcessing: (state) => state is Initial,
-              (state) async* {
-                yield const Preparing();
-                yield state
-                    .isA<Preparing>()
-                    .strongMap((it) => it.copyWith(progress: 100))
-                    .value;
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 100)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
-          'isA.strongMap.use',
-          () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
-              key: 'test',
-              checkStateBeforeProcessing: (state) => state is Initial,
-              (state) async* {
-                yield const Preparing();
-                yield state
-                    .isA<Preparing>()
-                    .strongMap((it) => it.copyWith(progress: 100))
-                    .use((it) => it);
-              },
-            );
-
-            conveyor.queue.add(event).saveToResults(results);
-
-            async.waitFuture(awaitResults());
-
-            expect(conveyor.log.log, [
-              '[test] started',
-              'state: $Preparing(progress: 0)',
-              'state: $Preparing(progress: 100)',
-              '[test] done',
-            ]);
-
-            expect(resultsToStrings(), [
-              '[test] completed',
-            ]);
-          }),
-        );
-
-        test(
           'isA.isA<Preparing>.value',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -2225,7 +2142,7 @@ void main() {
         test(
           'isA.isA<Preparing>.use',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -2254,7 +2171,7 @@ void main() {
         test(
           'isA.isA<Working>.value',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -2270,11 +2187,11 @@ void main() {
             expect(conveyor.log.log, [
               '[test] started',
               'state: $Preparing(progress: 0)',
-              '[test] cancelled $CancelledByCheckState(is not Working)',
+              '[test] cancelled $CancelledByCheckState(is not $Working)',
             ]);
 
             expect(resultsToStrings(), [
-              '[test] $CancelledByCheckState(is not Working)',
+              '[test] $CancelledByCheckState(is not $Working)',
             ]);
           }),
         );
@@ -2282,7 +2199,7 @@ void main() {
         test(
           'isA.isA<Working>.use',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -2298,11 +2215,11 @@ void main() {
             expect(conveyor.log.log, [
               '[test] started',
               'state: $Preparing(progress: 0)',
-              '[test] cancelled $CancelledByCheckState(is not Working)',
+              '[test] cancelled $CancelledByCheckState(is not $Working)',
             ]);
 
             expect(resultsToStrings(), [
-              '[test] $CancelledByCheckState(is not Working)',
+              '[test] $CancelledByCheckState(is not $Working)',
             ]);
           }),
         );
@@ -2310,7 +2227,7 @@ void main() {
         test(
           'isA.isA<TestState>.value',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -2339,7 +2256,7 @@ void main() {
         test(
           'isA.isA<TestState>.use',
           () => fakeAsync((async) {
-            final event = TestEvent<TestState, TestState>(
+            final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
@@ -2368,8 +2285,8 @@ void main() {
     });
 
     group('Queue.', () {
-      TestEvent<TestState, TestState> noop(int num) {
-        final event = TestEvent<Special, Special>(
+      TestEvent<TestState> noop(int num) {
+        final event = TestEvent<Special>(
           key: 'noop$num',
           (state) async* {
             await Future(() {});
@@ -2386,8 +2303,8 @@ void main() {
         return event;
       }
 
-      TestEvent<TestState, TestState> sequential(int num) {
-        final event = TestEvent<Special, Special>(
+      TestEvent<TestState> sequential(int num) {
+        final event = TestEvent<Special>(
           key: 'sequential$num',
           (state) async* {
             await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -2404,10 +2321,9 @@ void main() {
         return event;
       }
 
-      TestEvent<TestState, TestState> droppable(int num) =>
-          conveyor.addEventOrDrop(
+      TestEvent<TestState> droppable(int num) => conveyor.addEventOrDrop(
             check: (e) => e.key.startsWith('droppable'),
-            create: () => TestEvent<Special, Special>(
+            create: () => TestEvent<Special>(
               key: 'droppable$num',
               (state) async* {
                 await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -2420,11 +2336,11 @@ void main() {
             ),
           );
 
-      TestEvent<TestState, TestState> droppableReturnPrevious(int num) =>
+      TestEvent<TestState> droppableReturnPrevious(int num) =>
           conveyor.addEventOrDrop(
             returnPreviousIfExists: true,
             check: (e) => e.key.startsWith('droppable'),
-            create: () => TestEvent<Special, Special>(
+            create: () => TestEvent<Special>(
               key: 'droppable$num',
               (state) async* {
                 await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -2437,10 +2353,9 @@ void main() {
             ),
           );
 
-      TestEvent<TestState, TestState> restartable(int num) =>
-          conveyor.addEventAndRestart(
+      TestEvent<TestState> restartable(int num) => conveyor.addEventAndRestart(
             check: (e) => e.key.startsWith('restartable'),
-            create: () => TestEvent<Special, Special>(
+            create: () => TestEvent<Special>(
               key: 'restartable$num',
               (state) async* {
                 yield state.use(
@@ -2460,6 +2375,7 @@ void main() {
 
       setUp(() {
         conveyor.externalSetState(const Special());
+        conveyor.log.log;
       });
 
       group('Sequential.', () {
@@ -2474,7 +2390,6 @@ void main() {
             expect((conveyor.state as Special).sequentialCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[sequential1] started',
               'state: $Special(sequential: 1)',
               '[sequential1] done',
@@ -2504,7 +2419,6 @@ void main() {
             expect((conveyor.state as Special).sequentialCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -2544,7 +2458,6 @@ void main() {
             expect((conveyor.state as Special).sequentialCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[sequential1] started',
               'state: $Special(sequential: 1)',
               '[sequential1] done',
@@ -2575,7 +2488,6 @@ void main() {
             expect((conveyor.state as Special).sequentialCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -2615,7 +2527,6 @@ void main() {
             expect((conveyor.state as Special).sequentialCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[sequential1] started',
               'state: $Special(sequential: 1)',
               '[sequential1] done',
@@ -2646,7 +2557,6 @@ void main() {
             expect((conveyor.state as Special).sequentialCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -2689,7 +2599,6 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[droppable2] removed $RemovedFromQueueManually()',
               '[droppable1] started',
               'state: $Special(droppable: 1)',
@@ -2719,7 +2628,6 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[droppable2] removed $RemovedFromQueueManually()',
               '[noop1] started',
               'state: $Special(noop: 1)',
@@ -2759,7 +2667,6 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[droppable1] started',
               '[droppable2] removed $RemovedFromQueueManually()',
               'state: $Special(droppable: 1)',
@@ -2790,7 +2697,6 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -2830,7 +2736,6 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[droppable1] started',
               'state: $Special(droppable: 1)',
               '[droppable1] done',
@@ -2863,7 +2768,6 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -2906,7 +2810,6 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[droppable1] started',
               'state: $Special(droppable: 1)',
               '[droppable1] done',
@@ -2935,7 +2838,6 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -2974,7 +2876,6 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[droppable1] started',
               'state: $Special(droppable: 1)',
               '[droppable1] done',
@@ -3004,7 +2905,6 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -3043,7 +2943,6 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[droppable1] started',
               'state: $Special(droppable: 1)',
               '[droppable1] done',
@@ -3076,7 +2975,6 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -3117,7 +3015,6 @@ void main() {
             expect((conveyor.state as Special).restartableCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[restartable1] removed $RemovedFromQueueManually()',
               '[restartable2] started',
               'state: $Special(restartable: 1)',
@@ -3146,7 +3043,6 @@ void main() {
             expect((conveyor.state as Special).restartableCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[restartable1] removed $RemovedFromQueueManually()',
               '[noop1] started',
               'state: $Special(noop: 1)',
@@ -3185,7 +3081,6 @@ void main() {
             expect((conveyor.state as Special).restartableCount, 3);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[restartable1] started',
               'state: $Special(restartable: 1)',
               '[restartable1] cancelled $CancelledManually()',
@@ -3217,7 +3112,6 @@ void main() {
             expect((conveyor.state as Special).restartableCount, 3);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -3258,7 +3152,6 @@ void main() {
             expect((conveyor.state as Special).restartableCount, 4);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[restartable1] started',
               'state: $Special(restartable: 1)',
               'state: $Special(restartable: 2)',
@@ -3291,7 +3184,6 @@ void main() {
             expect((conveyor.state as Special).restartableCount, 4);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -3325,13 +3217,13 @@ void main() {
       group('Debounce.', () {
         late Debouncer<void> debouncer;
 
-        TestEvent<TestState, TestState> debounce(int num) {
+        TestEvent<TestState> debounce(int num) {
           final lastEvent = conveyor.lastEventWhere(
             (e) => e.key.startsWith('debounce'),
           );
 
           final event = conveyor.queue.add(
-            TestEvent<Special, Special>(
+            TestEvent<Special>(
               key: 'debounce$num',
               (state) async* {
                 yield state.use(
@@ -3367,7 +3259,6 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[debounce2] removed $RemovedFromQueueManually()',
               '[debounce1] started',
               'state: $Special(debounce: 1)',
@@ -3397,7 +3288,6 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[debounce2] removed $RemovedFromQueueManually()',
               '[noop1] started',
               'state: $Special(noop: 1)',
@@ -3437,7 +3327,6 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[debounce1] started',
               'state: $Special(debounce: 1)',
               '[debounce1] done',
@@ -3468,7 +3357,6 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -3508,7 +3396,6 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[debounce1] started',
               'state: $Special(debounce: 1)',
               '[debounce1] done',
@@ -3541,7 +3428,6 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -3571,9 +3457,9 @@ void main() {
       });
 
       group('Debounce with return previous event when dropped.', () {
-        late Debouncer<TestEvent<TestState, TestState>> debouncerWithPrevious;
+        late Debouncer<TestEvent<TestState>> debouncerWithPrevious;
 
-        TestEvent<TestState, TestState> debounceReturnPrevious(int num) {
+        TestEvent<TestState> debounceReturnPrevious(int num) {
           final lastEvent = conveyor.lastEventWhere(
             (e) => e.key.startsWith('debounce'),
           );
@@ -3583,7 +3469,7 @@ void main() {
 
           return debouncerWithPrevious.startWithData(
             onStart: () => conveyor.queue.add(
-              TestEvent<Special, Special>(
+              TestEvent<Special>(
                 key: 'debounce$num',
                 (state) async* {
                   yield state.use(
@@ -3598,7 +3484,7 @@ void main() {
         }
 
         setUp(() {
-          debouncerWithPrevious = Debouncer<TestEvent<TestState, TestState>>(
+          debouncerWithPrevious = Debouncer<TestEvent<TestState>>(
             const Duration(milliseconds: 100),
           );
         });
@@ -3616,7 +3502,6 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[debounce1] started',
               'state: $Special(debounce: 1)',
               '[debounce1] done',
@@ -3645,7 +3530,6 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -3684,7 +3568,6 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[debounce1] started',
               'state: $Special(debounce: 1)',
               '[debounce1] done',
@@ -3714,7 +3597,6 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 1);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -3753,7 +3635,6 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[debounce1] started',
               'state: $Special(debounce: 1)',
               '[debounce1] done',
@@ -3786,7 +3667,6 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 2);
 
             expect(conveyor.log.log, [
-              'state: $Special()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -3818,18 +3698,23 @@ void main() {
 
     group('Inner events.', () {
       void addEvents() {
-        final event3 = TestEvent<Preparing, Preparing>(
+        final event3 = TestEvent<Preparing>(
           key: 'test3',
+          checkState: (state) => state.progress <= 100,
           (state) async* {
             await Future<void>.delayed(const Duration(milliseconds: 100));
             yield state.use((it) => it.copyWith(progress: 100));
           },
         );
-        final event2 = TestEvent<Preparing, TestState>(
+
+        final event2 = TestEvent<PreparingAndWorking>(
           key: 'test2',
+          checkStateBeforeProcessing: (state) => state is Preparing,
+          checkStateOnExternalChange: (state) => state is Preparing,
+          checkState: (state) => state is! Preparing || state.progress <= 100,
           (state) async* {
             await Future<void>.delayed(const Duration(milliseconds: 100));
-            yield state.use((it) => it.copyWith(progress: 50));
+            yield state.isA<Preparing>().use((it) => it.copyWith(progress: 50));
 
             event3.saveToResults(results);
             yield* state.run(event3);
@@ -3837,8 +3722,10 @@ void main() {
             yield const Working();
           },
         );
-        final event1 = TestEvent<TestState, TestState>(
+
+        final event1 = TestEvent<TestState>(
           key: 'test1',
+          checkStateBeforeProcessing: (state) => state is Initial,
           checkStateOnExternalChange: (state) => state is! Disposed,
           (state) async* {
             await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -3846,6 +3733,11 @@ void main() {
 
             event2.saveToResults(results);
             yield* state.run(event2);
+
+            await Future<void>.delayed(const Duration(milliseconds: 100));
+            yield state
+                .isA<Working>()
+                .use((it) => it.copyWith(a: it.a + 1, b: it.b + 1));
 
             yield const Disposed();
           },
@@ -3870,6 +3762,7 @@ void main() {
             '>> [test3] done',
             'state: $Working(a: 0, b: 0)',
             '> [test2] done',
+            'state: Working(a: 1, b: 1)',
             'state: $Disposed()',
             '[test1] done',
           ]);
@@ -3961,6 +3854,38 @@ void main() {
       );
 
       test(
+        'Close after 350 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          Future<void>.delayed(const Duration(milliseconds: 350), () {
+            conveyor.currentProcess?.cancel();
+          });
+
+          async.waitFuture(awaitResults());
+
+          expect(conveyor.log.log, [
+            '[test1] started',
+            'state: $Preparing(progress: 0)',
+            '> [test2] started',
+            'state: $Preparing(progress: 50)',
+            '>> [test3] started',
+            'state: $Preparing(progress: 100)',
+            '>> [test3] done',
+            'state: $Working(a: 0, b: 0)',
+            '> [test2] done',
+            '[test1] cancelled $CancelledManually()',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[test1] $CancelledManually()',
+            '[test2] completed',
+            '[test3] completed',
+          ]);
+        }),
+      );
+
+      test(
         'Change state to Disposed after 50 ms',
         () => fakeAsync((async) {
           addEvents();
@@ -3973,12 +3898,13 @@ void main() {
 
           expect(conveyor.log.log, [
             '[test1] started',
-            'state: Disposed()',
-            '[test1] cancelled $CancelledByEventRulesOnExternalChange()',
+            'externalSetState: $Disposed()',
+            'state: $Disposed()',
+            '[test1] cancelled $CancelledByEventRules(checkStateOnExternalChange)',
           ]);
 
           expect(resultsToStrings(), [
-            '[test1] $CancelledByEventRulesOnExternalChange()',
+            '[test1] $CancelledByEventRules(checkStateOnExternalChange)',
           ]);
         }),
       );
@@ -3998,14 +3924,15 @@ void main() {
             '[test1] started',
             'state: $Preparing(progress: 0)',
             '> [test2] started',
+            'externalSetState: $Disposed()',
             'state: $Disposed()',
-            '> [test2] cancelled $CancelledManually()', // TODO(nashol): ???
-            '[test1] cancelled $CancelledByEventRulesOnExternalChange()',
+            '> [test2] cancelled $CancelledByEventRules(is not $PreparingAndWorking)',
+            '[test1] cancelled $CancelledByEventRules(checkStateOnExternalChange)',
           ]);
 
           expect(resultsToStrings(), [
-            '[test1] $CancelledByEventRulesOnExternalChange()',
-            '[test2] $CancelledManually()',
+            '[test1] $CancelledByEventRules(checkStateOnExternalChange)',
+            '[test2] $CancelledByEventRules(is not $PreparingAndWorking)',
           ]);
         }),
       );
@@ -4027,27 +3954,28 @@ void main() {
             '> [test2] started',
             'state: $Preparing(progress: 50)',
             '>> [test3] started',
+            'externalSetState: $Disposed()',
             'state: $Disposed()',
-            '>> [test3] cancelled $CancelledManually()',
-            '> [test2] cancelled $CancelledManually()',
-            '[test1] cancelled $CancelledByEventRulesOnExternalChange()',
+            '>> [test3] cancelled $CancelledByEventRules(is not $Preparing)',
+            '> [test2] cancelled $CancelledByEventRules(is not $PreparingAndWorking)',
+            '[test1] cancelled $CancelledByEventRules(checkStateOnExternalChange)',
           ]);
 
           expect(resultsToStrings(), [
-            '[test1] $CancelledByEventRulesOnExternalChange()',
-            '[test2] $CancelledManually()',
-            '[test3] $CancelledManually()',
+            '[test1] $CancelledByEventRules(checkStateOnExternalChange)',
+            '[test2] $CancelledByEventRules(is not $PreparingAndWorking)',
+            '[test3] $CancelledByEventRules(is not $Preparing)',
           ]);
         }),
       );
 
       test(
-        'Change state to Working after 250 ms',
+        'Change state to Disposed after 350 ms',
         () => fakeAsync((async) {
           addEvents();
 
-          Future<void>.delayed(const Duration(milliseconds: 250), () {
-            conveyor.externalSetState(const Working());
+          Future<void>.delayed(const Duration(milliseconds: 350), () {
+            conveyor.externalSetState(const Disposed());
           });
 
           async.waitFuture(awaitResults());
@@ -4058,16 +3986,427 @@ void main() {
             '> [test2] started',
             'state: $Preparing(progress: 50)',
             '>> [test3] started',
+            'state: $Preparing(progress: 100)',
+            '>> [test3] done',
             'state: $Working(a: 0, b: 0)',
-            '>> [test3] cancelled $CancelledByCheckState(is not Preparing)',
-            '> [test2] cancelled $CancelledByCheckState(is not Preparing)',
-            '[test1] cancelled $CancelledByCheckState(is not Preparing)',
+            '> [test2] done',
+            'externalSetState: $Disposed()',
+            'state: $Disposed()',
+            '[test1] cancelled $CancelledByEventRules(checkStateOnExternalChange)',
           ]);
 
           expect(resultsToStrings(), [
-            '[test1] $CancelledByCheckState(is not Preparing)',
-            '[test2] $CancelledByCheckState(is not Preparing)',
-            '[test3] $CancelledByCheckState(is not Preparing)',
+            '[test1] $CancelledByEventRules(checkStateOnExternalChange)',
+            '[test2] completed',
+            '[test3] completed',
+          ]);
+        }),
+      );
+
+      test(
+        'Change state to Preparing(100) after 50 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          Future<void>.delayed(const Duration(milliseconds: 50), () {
+            conveyor.externalSetState(const Preparing(progress: 100));
+          });
+
+          async.waitFuture(awaitResults());
+
+          expect(conveyor.log.log, [
+            '[test1] started',
+            'externalSetState: $Preparing(progress: 100)',
+            'state: $Preparing(progress: 100)',
+            'state: $Preparing(progress: 0)',
+            '> [test2] started',
+            'state: $Preparing(progress: 50)',
+            '>> [test3] started',
+            'state: $Preparing(progress: 100)',
+            '>> [test3] done',
+            'state: $Working(a: 0, b: 0)',
+            '> [test2] done',
+            'state: $Working(a: 1, b: 1)',
+            'state: $Disposed()',
+            '[test1] done',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[test1] completed',
+            '[test2] completed',
+            '[test3] completed',
+          ]);
+        }),
+      );
+
+      test(
+        'Change state to Preparing(100) after 150 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          Future<void>.delayed(const Duration(milliseconds: 150), () {
+            conveyor.externalSetState(const Preparing(progress: 100));
+          });
+
+          async.waitFuture(awaitResults());
+
+          expect(conveyor.log.log, [
+            '[test1] started',
+            'state: $Preparing(progress: 0)',
+            '> [test2] started',
+            'externalSetState: $Preparing(progress: 100)',
+            'state: $Preparing(progress: 100)',
+            'state: $Preparing(progress: 50)',
+            '>> [test3] started',
+            'state: $Preparing(progress: 100)',
+            '>> [test3] done',
+            'state: $Working(a: 0, b: 0)',
+            '> [test2] done',
+            'state: $Working(a: 1, b: 1)',
+            'state: $Disposed()',
+            '[test1] done',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[test1] completed',
+            '[test2] completed',
+            '[test3] completed',
+          ]);
+        }),
+      );
+
+      test(
+        'Change state to Preparing(100) after 250 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          Future<void>.delayed(const Duration(milliseconds: 250), () {
+            conveyor.externalSetState(const Preparing(progress: 100));
+          });
+
+          async.waitFuture(awaitResults());
+
+          expect(conveyor.log.log, [
+            '[test1] started',
+            'state: $Preparing(progress: 0)',
+            '> [test2] started',
+            'state: $Preparing(progress: 50)',
+            '>> [test3] started',
+            'externalSetState: $Preparing(progress: 100)',
+            'state: $Preparing(progress: 100)',
+            'state: $Preparing(progress: 100)',
+            '>> [test3] done',
+            'state: $Working(a: 0, b: 0)',
+            '> [test2] done',
+            'state: $Working(a: 1, b: 1)',
+            'state: $Disposed()',
+            '[test1] done',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[test1] completed',
+            '[test2] completed',
+            '[test3] completed',
+          ]);
+        }),
+      );
+
+      test(
+        'Change state to Preparing(100) after 350 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          Future<void>.delayed(const Duration(milliseconds: 350), () {
+            conveyor.externalSetState(const Preparing(progress: 100));
+          });
+
+          async.waitFuture(awaitResults());
+
+          expect(conveyor.log.log, [
+            '[test1] started',
+            'state: $Preparing(progress: 0)',
+            '> [test2] started',
+            'state: $Preparing(progress: 50)',
+            '>> [test3] started',
+            'state: $Preparing(progress: 100)',
+            '>> [test3] done',
+            'state: $Working(a: 0, b: 0)',
+            '> [test2] done',
+            'externalSetState: $Preparing(progress: 100)',
+            'state: $Preparing(progress: 100)',
+            '[test1] cancelled $CancelledByCheckState(is not $Working)',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[test1] $CancelledByCheckState(is not $Working)',
+            '[test2] completed',
+            '[test3] completed',
+          ]);
+        }),
+      );
+
+      test(
+        'Change state to Preparing(999) after 50 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          Future<void>.delayed(const Duration(milliseconds: 50), () {
+            conveyor.externalSetState(const Preparing(progress: 999));
+          });
+
+          async.waitFuture(awaitResults());
+
+          expect(conveyor.log.log, [
+            '[test1] started',
+            'externalSetState: $Preparing(progress: 999)',
+            'state: $Preparing(progress: 999)',
+            'state: $Preparing(progress: 0)',
+            '> [test2] started',
+            'state: $Preparing(progress: 50)',
+            '>> [test3] started',
+            'state: $Preparing(progress: 100)',
+            '>> [test3] done',
+            'state: $Working(a: 0, b: 0)',
+            '> [test2] done',
+            'state: $Working(a: 1, b: 1)',
+            'state: $Disposed()',
+            '[test1] done',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[test1] completed',
+            '[test2] completed',
+            '[test3] completed',
+          ]);
+        }),
+      );
+
+      test(
+        'Change state to Preparing(999) after 150 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          Future<void>.delayed(const Duration(milliseconds: 150), () {
+            conveyor.externalSetState(const Preparing(progress: 999));
+          });
+
+          async.waitFuture(awaitResults());
+
+          expect(conveyor.log.log, [
+            '[test1] started',
+            'state: $Preparing(progress: 0)',
+            '> [test2] started',
+            'externalSetState: $Preparing(progress: 999)',
+            'state: $Preparing(progress: 999)',
+            '> [test2] cancelled $CancelledByEventRules(checkState)',
+            '[test1] cancelled $CancelledByCheckState(is not $Working)',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[test1] $CancelledByCheckState(is not $Working)',
+            '[test2] $CancelledByEventRules(checkState)',
+          ]);
+        }),
+      );
+
+      test(
+        'Change state to Preparing(999) after 250 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          Future<void>.delayed(const Duration(milliseconds: 250), () {
+            conveyor.externalSetState(const Preparing(progress: 999));
+          });
+
+          async.waitFuture(awaitResults());
+
+          expect(conveyor.log.log, [
+            '[test1] started',
+            'state: $Preparing(progress: 0)',
+            '> [test2] started',
+            'state: $Preparing(progress: 50)',
+            '>> [test3] started',
+            'externalSetState: $Preparing(progress: 999)',
+            'state: $Preparing(progress: 999)',
+            '>> [test3] cancelled $CancelledByEventRules(checkState)',
+            '> [test2] cancelled $CancelledByEventRules(checkState)',
+            '[test1] cancelled $CancelledByCheckState(is not $Working)',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[test1] $CancelledByCheckState(is not $Working)',
+            '[test2] $CancelledByEventRules(checkState)',
+            '[test3] $CancelledByEventRules(checkState)',
+          ]);
+        }),
+      );
+
+      test(
+        'Change state to Preparing(999) after 350 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          Future<void>.delayed(const Duration(milliseconds: 350), () {
+            conveyor.externalSetState(const Preparing(progress: 999));
+          });
+
+          async.waitFuture(awaitResults());
+
+          expect(conveyor.log.log, [
+            '[test1] started',
+            'state: $Preparing(progress: 0)',
+            '> [test2] started',
+            'state: $Preparing(progress: 50)',
+            '>> [test3] started',
+            'state: $Preparing(progress: 100)',
+            '>> [test3] done',
+            'state: $Working(a: 0, b: 0)',
+            '> [test2] done',
+            'externalSetState: $Preparing(progress: 999)',
+            'state: $Preparing(progress: 999)',
+            '[test1] cancelled $CancelledByCheckState(is not $Working)',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[test1] $CancelledByCheckState(is not $Working)',
+            '[test2] completed',
+            '[test3] completed',
+          ]);
+        }),
+      );
+
+      test(
+        'Change state to Working after 50 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          Future<void>.delayed(const Duration(milliseconds: 50), () {
+            conveyor.externalSetState(const Working(a: 999, b: 999));
+          });
+
+          async.waitFuture(awaitResults());
+
+          expect(conveyor.log.log, [
+            '[test1] started',
+            'externalSetState: $Working(a: 999, b: 999)',
+            'state: $Working(a: 999, b: 999)',
+            'state: $Preparing(progress: 0)',
+            '> [test2] started',
+            'state: $Preparing(progress: 50)',
+            '>> [test3] started',
+            'state: $Preparing(progress: 100)',
+            '>> [test3] done',
+            'state: $Working(a: 0, b: 0)',
+            '> [test2] done',
+            'state: $Working(a: 1, b: 1)',
+            'state: $Disposed()',
+            '[test1] done',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[test1] completed',
+            '[test2] completed',
+            '[test3] completed',
+          ]);
+        }),
+      );
+
+      test(
+        'Change state to Working after 150 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          Future<void>.delayed(const Duration(milliseconds: 150), () {
+            conveyor.externalSetState(const Working(a: 999, b: 999));
+          });
+
+          async.waitFuture(awaitResults());
+
+          expect(conveyor.log.log, [
+            '[test1] started',
+            'state: $Preparing(progress: 0)',
+            '> [test2] started',
+            'externalSetState: $Working(a: 999, b: 999)',
+            'state: $Working(a: 999, b: 999)',
+            '> [test2] cancelled $CancelledByEventRules(checkStateOnExternalChange)',
+            'state: $Working(a: 1000, b: 1000)',
+            'state: $Disposed()',
+            '[test1] done',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[test1] completed',
+            '[test2] $CancelledByEventRules(checkStateOnExternalChange)',
+          ]);
+        }),
+      );
+
+      test(
+        'Change state to Working after 250 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          Future<void>.delayed(const Duration(milliseconds: 250), () {
+            conveyor.externalSetState(const Working(a: 999, b: 999));
+          });
+
+          async.waitFuture(awaitResults());
+
+          expect(conveyor.log.log, [
+            '[test1] started',
+            'state: $Preparing(progress: 0)',
+            '> [test2] started',
+            'state: $Preparing(progress: 50)',
+            '>> [test3] started',
+            'externalSetState: $Working(a: 999, b: 999)',
+            'state: $Working(a: 999, b: 999)',
+            '>> [test3] cancelled $CancelledByEventRules(is not $Preparing)',
+            '> [test2] cancelled $CancelledByEventRules(checkStateOnExternalChange)',
+            'state: $Working(a: 1000, b: 1000)',
+            'state: $Disposed()',
+            '[test1] done',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[test1] completed',
+            '[test2] $CancelledByEventRules(checkStateOnExternalChange)',
+            '[test3] $CancelledByEventRules(is not $Preparing)',
+          ]);
+        }),
+      );
+
+      test(
+        'Change state to Working after 350 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          Future<void>.delayed(const Duration(milliseconds: 350), () {
+            conveyor.externalSetState(const Working(a: 999, b: 999));
+          });
+
+          async.waitFuture(awaitResults());
+
+          expect(conveyor.log.log, [
+            '[test1] started',
+            'state: $Preparing(progress: 0)',
+            '> [test2] started',
+            'state: $Preparing(progress: 50)',
+            '>> [test3] started',
+            'state: $Preparing(progress: 100)',
+            '>> [test3] done',
+            'state: $Working(a: 0, b: 0)',
+            '> [test2] done',
+            'externalSetState: $Working(a: 999, b: 999)',
+            'state: $Working(a: 999, b: 999)',
+            'state: $Working(a: 1000, b: 1000)',
+            'state: $Disposed()',
+            '[test1] done',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[test1] completed',
+            '[test2] completed',
+            '[test3] completed',
           ]);
         }),
       );

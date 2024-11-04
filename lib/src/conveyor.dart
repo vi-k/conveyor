@@ -7,19 +7,21 @@ import 'linked_list/linked_list.dart';
 
 part 'event.dart';
 part 'exceptions/cancelled.dart';
-part 'mixins.dart';
+part 'external_set_state.dart';
 part 'process.dart';
 part 'queue.dart';
 part 'result.dart';
 part 'state_provider.dart';
+part 'test_set_state.dart';
 
 abstract class Conveyor<BaseState extends Object,
-    Event extends ConveyorEvent<BaseState, Event, BaseState, BaseState>> {
+    Event extends ConveyorEvent<BaseState, Event, BaseState>> {
   late final ConveyorQueue<BaseState, Event> _queue;
   late final StreamController<BaseState> _stateController;
 
   BaseState _state;
   _ConveyorProcess<BaseState, Event>? _currentProcess;
+  List<_ConveyorProcess<BaseState, Event>>? _currentProcesses;
   Future<void>? _closeFuture;
 
   Conveyor(
@@ -50,10 +52,16 @@ abstract class Conveyor<BaseState extends Object,
 
     _setState(newState);
 
-    final currentProcess = _currentProcess;
-    if (currentProcess != null) {
-      if (!currentProcess.event.checkStateOnExternalChange(newState)) {
-        currentProcess._cancel(const CancelledByEventRulesOnExternalChange._());
+    final currentProcesses = _currentProcesses;
+    if (currentProcesses != null) {
+      for (final process in currentProcesses.reversed) {
+        debug('${process.event} checkStateOnExternalChange');
+        try {
+          process.event.checkStateOnExternalChange(newState);
+        } on Cancelled catch (reason, stackTrace) {
+          debug('${process.event} checkStateOnExternalChange cancel');
+          process._cancel(reason, stackTrace);
+        }
       }
     }
   }
@@ -156,6 +164,21 @@ abstract class Conveyor<BaseState extends Object,
     // debug('$event removed ${event.result.cancellationReason}');
   }
 
+  void onLog(
+    ConveyorProcess<BaseState, Event> process,
+    String message,
+  ) {
+    //
+  }
+
+  void onRawLog(
+    ConveyorProcess<BaseState, Event> process,
+    Object? message,
+  ) {
+    final str = message is String Function() ? message() : message.toString();
+    onLog(process, str);
+  }
+
   Event? get lastEvent => queue.lastOrNull ?? currentProcess?.event;
 
   Event? lastEventWhere(bool Function(Event event) test) =>
@@ -213,13 +236,10 @@ abstract class Conveyor<BaseState extends Object,
 
     var nextEvent = _queue._unsafePull();
     while (nextEvent != null) {
-      if (nextEvent.checkStateBeforeProcessing(_state)) {
-        return nextEvent;
-      } else {
-        nextEvent._result.cancel(
-          const RemovedFromQueueByEventRules._(),
-          StackTrace.current,
-        );
+      try {
+        return nextEvent..checkStateBeforeProcessing(_state);
+      } on Cancelled catch (reason, stackTrace) {
+        nextEvent._result.cancel(reason, stackTrace);
 
         debug('event removed: $nextEvent ${nextEvent.result}');
         onRemove(nextEvent);
@@ -232,7 +252,7 @@ abstract class Conveyor<BaseState extends Object,
   }
 
   void _handle(Event event) {
-    _currentProcess = _ConveyorProcess(
+    final currentProcess = _ConveyorProcess(
       conveyor: this,
       event: event,
       onData: (state) {
@@ -241,8 +261,11 @@ abstract class Conveyor<BaseState extends Object,
       },
       onFinish: () {
         _currentProcess = null;
+        _currentProcesses = null;
         _startLoop();
       },
     );
+    _currentProcess = currentProcess;
+    _currentProcesses = [currentProcess];
   }
 }

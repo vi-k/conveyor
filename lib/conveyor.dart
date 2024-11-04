@@ -1,1 +1,1 @@
-export 'src/conveyor.dart';
+export 'src/conveyor.dart' hide TestSetState;

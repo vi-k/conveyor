@@ -45,3 +45,5 @@ state = ready
 события... А может и нормально
 
 тест на debugInfo
+
+checkStateOnExternalChange работает только на корневом процессе

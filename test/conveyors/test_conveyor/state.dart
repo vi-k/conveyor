@@ -5,7 +5,16 @@ sealed class TestState {
   const TestState();
 }
 
-final class Initial extends TestState {
+sealed class NotDisposed extends TestState {}
+
+sealed class InitialAndPreparing extends TestState {}
+
+sealed class PreparingAndWorking extends TestState {}
+
+sealed class WorkingAndDisposed extends TestState {}
+
+final class Initial extends TestState
+    implements NotDisposed, InitialAndPreparing {
   const Initial();
 
   @override
@@ -18,7 +27,8 @@ final class Initial extends TestState {
   String toString() => '$Initial()';
 }
 
-final class Preparing extends TestState {
+final class Preparing extends TestState
+    implements NotDisposed, InitialAndPreparing, PreparingAndWorking {
   final int progress;
 
   const Preparing({
@@ -43,7 +53,8 @@ final class Preparing extends TestState {
   String toString() => '$Preparing(progress: $progress)';
 }
 
-final class Working extends TestState {
+final class Working extends TestState
+    implements NotDisposed, PreparingAndWorking, WorkingAndDisposed {
   final int a;
   final int b;
 
@@ -70,6 +81,19 @@ final class Working extends TestState {
 
   @override
   String toString() => '$Working(a: $a, b: $b)';
+}
+
+final class Disposed extends TestState implements WorkingAndDisposed {
+  const Disposed();
+
+  @override
+  bool operator ==(covariant TestState other) => other is Disposed;
+
+  @override
+  int get hashCode => (Disposed).hashCode;
+
+  @override
+  String toString() => '$Disposed()';
 }
 
 final class Special extends TestState {
@@ -154,17 +178,4 @@ final class Special extends TestState {
 
     return '$Special($buf)';
   }
-}
-
-final class Disposed extends TestState {
-  const Disposed();
-
-  @override
-  bool operator ==(covariant TestState other) => other is Disposed;
-
-  @override
-  int get hashCode => (Disposed).hashCode;
-
-  @override
-  String toString() => '$Disposed()';
 }
