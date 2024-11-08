@@ -28,11 +28,6 @@ abstract interface class ConveyorProcess<BaseState extends Object,
   /// Дожидается его реального завершения.
   Future<void> cancel();
 
-  /// Отмена процесса.
-  ///
-  /// Не дожидается его завершения.
-  void forceCancel();
-
   /// Проверка события, обрабатываемого процессом.
   ///
   /// Возвращает событие, если проверка прошла успешно, и `null`, если [test]
@@ -55,8 +50,9 @@ class _ConveyorProcess<BaseState extends Object,
 
   final void Function() onFinish;
 
+  late final RootConveyorStateProvider<BaseState, Event, BaseState>
+      _stateProvider;
   StreamSubscription<BaseState>? _subscription;
-
   Future<void>? _cancelFuture;
 
   _ConveyorProcess({
@@ -66,48 +62,7 @@ class _ConveyorProcess<BaseState extends Object,
     required this.onFinish,
     this.level = 0,
   }) {
-    debug('process $event started');
-    conveyor.onStart(this);
-
-    final (stateProvider, stream) = event._run(conveyor, this);
-
-    // final stateProvider = event._createStateProvider(conveyor, this);
-    // _subscription = event._process(stateProvider).listen(
-    // _subscription = event._run(conveyor, this).listen(
-    _subscription = stream.listen(
-      (state) {
-        onData(state);
-        try {
-          debug('$event checkState onData');
-          stateProvider._checkState(state);
-        } on Cancelled catch (reason, _) {
-          _cancel(reason, StackTrace.current);
-        }
-      },
-      // ignore: avoid_types_on_closure_parameters
-      onError: (Object error, StackTrace stackTrace) async {
-        await _subscription?.cancel();
-        _subscription = null;
-        if (error is Cancelled) {
-          event._result.cancel(error, stackTrace);
-          debug('process $event cancelled: $error');
-          conveyor.onCancel(this);
-        } else {
-          event._result.completeError(error, stackTrace);
-          debug('process $event failed: $error');
-          conveyor.onError(this, error, stackTrace);
-        }
-        onFinish();
-      },
-      onDone: () {
-        _subscription = null;
-        event._result.complete();
-        debug('process $event done');
-        conveyor.onDone(this);
-        onFinish();
-      },
-      cancelOnError: true,
-    );
+    _start();
   }
 
   @override
@@ -122,35 +77,80 @@ class _ConveyorProcess<BaseState extends Object,
   @override
   Future<void> get future => event.result.future;
 
-  @override
-  Future<void> cancel() => _cancel(
-        const CancelledManually._(),
-        StackTrace.current,
-      );
+  void _start() {
+    conveyor.onStart(this);
+    debug('$event started');
+
+    final (stateProvider, stream) = event._run(conveyor, this);
+    _stateProvider = stateProvider;
+
+    _subscription = stream.listen(
+      (state) {
+        try {
+          debug(() => '$event yield: check current state');
+          _stateProvider.check();
+        } on Cancelled catch (reason, stackTrace) {
+          _cancel(reason, stackTrace);
+          return;
+        }
+
+        try {
+          debug(() => '$event yield: check new state');
+          stateProvider._checkState(state);
+        } on Cancelled catch (reason, stackTrace) {
+          _cancel(reason, stackTrace);
+          return;
+        }
+
+        onData(state);
+      },
+      // ignore: avoid_types_on_closure_parameters
+      onError: (Object error, StackTrace stackTrace) async {
+        await _subscription?.cancel();
+        _subscription = null;
+        if (error is Cancelled) {
+          event._result.cancel(error, stackTrace);
+          debug('$event cancelled: $error');
+          conveyor.onCancel(this);
+        } else {
+          event._result.completeError(error, stackTrace);
+          debug('$event failed: $error');
+          conveyor.onError(this, error, stackTrace);
+        }
+        onFinish();
+      },
+      onDone: () {
+        _subscription = null;
+        event._result.complete();
+        debug('$event done');
+        conveyor.onDone(this);
+        onFinish();
+      },
+      cancelOnError: true,
+    );
+  }
 
   @override
-  Future<void> forceCancel() => _cancel(
-        const CancelledManually._(),
-        StackTrace.current,
-        forceCancel: true,
-      );
+  Future<void> cancel() async {
+    if (event.uncancellable) {
+      debug("$event can't be cancelled");
+      return;
+    }
+
+    await _cancel(
+      const CancelledManually._(),
+      StackTrace.current,
+    );
+  }
 
   @override
   Event? checkEvent(bool Function(Event event) test) =>
       test(event) ? event : null;
 
-  Future<void> _cancel(
-    Cancelled reason,
-    StackTrace stackTrace, {
-    bool forceCancel = false,
-  }) async {
-    final cancelFuture = _cancelFuture;
+  Future<void> _cancel(Cancelled reason, StackTrace stackTrace) async {
+    var cancelFuture = _cancelFuture;
     if (cancelFuture != null) {
-      if (!forceCancel) {
-        await cancelFuture;
-      }
-
-      return;
+      return cancelFuture;
     }
 
     final subscription = _subscription;
@@ -158,22 +158,24 @@ class _ConveyorProcess<BaseState extends Object,
       return;
     }
 
-    debug('process $event cancelled: $reason');
-    final future = subscription.cancel().onError<Object>((error, stackTrace) {
-      if (error is! Cancelled) {
-        conveyor.onError(this, error, stackTrace);
-      }
-    });
-    _cancelFuture = future;
+    debug('$event start cancellation: $reason');
 
-    if (!forceCancel) {
-      await future;
-    }
+    cancelFuture = subscription.cancel().onError<Object>(
+      (error, stackTrace) {
+        if (error is! Cancelled) {
+          conveyor.onError(this, error, stackTrace);
+        }
+      },
+    );
+    _cancelFuture = cancelFuture;
+
+    await cancelFuture;
+    _cancelFuture = null;
 
     _subscription = null;
-    _cancelFuture = null;
     event._result.cancel(reason, stackTrace);
-    conveyor.onCancel(this);
     onFinish();
+    conveyor.onCancel(this);
+    debug('$event finish cancellation');
   }
 }

@@ -159,17 +159,17 @@ void main() {
             expect(async.elapsed, Duration.zero);
 
             expect(conveyor.log.log, [
-              '[init] removed $RemovedFromQueueManually()',
-              '[incrementA] removed $RemovedFromQueueManually()',
-              '[incrementB] removed $RemovedFromQueueManually()',
-              '[finish] removed $RemovedFromQueueManually()',
+              '[init] removed $RemovedManually()',
+              '[incrementA] removed $RemovedManually()',
+              '[incrementB] removed $RemovedManually()',
+              '[finish] removed $RemovedManually()',
             ]);
 
             expect(resultsToStrings(), [
-              '[init] $RemovedFromQueueManually()',
-              '[incrementA] $RemovedFromQueueManually()',
-              '[incrementB] $RemovedFromQueueManually()',
-              '[finish] $RemovedFromQueueManually()',
+              '[init] $RemovedManually()',
+              '[incrementA] $RemovedManually()',
+              '[incrementB] $RemovedManually()',
+              '[finish] $RemovedManually()',
             ]);
           }),
         );
@@ -186,17 +186,17 @@ void main() {
 
             expect(conveyor.log.log, [
               '[init] started',
-              '[incrementA] removed $RemovedFromQueueManually()',
-              '[incrementB] removed $RemovedFromQueueManually()',
-              '[finish] removed $RemovedFromQueueManually()',
+              '[incrementA] removed $RemovedManually()',
+              '[incrementB] removed $RemovedManually()',
+              '[finish] removed $RemovedManually()',
               '[init] cancelled $CancelledManually()',
             ]);
 
             expect(resultsToStrings(), [
               '[init] $CancelledManually()',
-              '[incrementA] $RemovedFromQueueManually()',
-              '[incrementB] $RemovedFromQueueManually()',
-              '[finish] $RemovedFromQueueManually()',
+              '[incrementA] $RemovedManually()',
+              '[incrementB] $RemovedManually()',
+              '[finish] $RemovedManually()',
             ]);
           }),
         );
@@ -215,17 +215,17 @@ void main() {
             expect(conveyor.log.log, [
               '[init] started',
               'state: $Preparing(progress: 0)',
-              '[incrementA] removed $RemovedFromQueueManually()',
-              '[incrementB] removed $RemovedFromQueueManually()',
-              '[finish] removed $RemovedFromQueueManually()',
+              '[incrementA] removed $RemovedManually()',
+              '[incrementB] removed $RemovedManually()',
+              '[finish] removed $RemovedManually()',
               '[init] cancelled $CancelledManually()',
             ]);
 
             expect(resultsToStrings(), [
               '[init] $CancelledManually()',
-              '[incrementA] $RemovedFromQueueManually()',
-              '[incrementB] $RemovedFromQueueManually()',
-              '[finish] $RemovedFromQueueManually()',
+              '[incrementA] $RemovedManually()',
+              '[incrementB] $RemovedManually()',
+              '[finish] $RemovedManually()',
             ]);
           }),
         );
@@ -245,17 +245,17 @@ void main() {
               '[init] started',
               'state: $Preparing(progress: 0)',
               'state: $Preparing(progress: 50)',
-              '[incrementA] removed $RemovedFromQueueManually()',
-              '[incrementB] removed $RemovedFromQueueManually()',
-              '[finish] removed $RemovedFromQueueManually()',
+              '[incrementA] removed $RemovedManually()',
+              '[incrementB] removed $RemovedManually()',
+              '[finish] removed $RemovedManually()',
               '[init] cancelled $CancelledManually()',
             ]);
 
             expect(resultsToStrings(), [
               '[init] $CancelledManually()',
-              '[incrementA] $RemovedFromQueueManually()',
-              '[incrementB] $RemovedFromQueueManually()',
-              '[finish] $RemovedFromQueueManually()',
+              '[incrementA] $RemovedManually()',
+              '[incrementB] $RemovedManually()',
+              '[finish] $RemovedManually()',
             ]);
           }),
         );
@@ -276,17 +276,17 @@ void main() {
               'state: $Preparing(progress: 0)',
               'state: $Preparing(progress: 50)',
               'state: $Preparing(progress: 100)',
-              '[incrementA] removed $RemovedFromQueueManually()',
-              '[incrementB] removed $RemovedFromQueueManually()',
-              '[finish] removed $RemovedFromQueueManually()',
+              '[incrementA] removed $RemovedManually()',
+              '[incrementB] removed $RemovedManually()',
+              '[finish] removed $RemovedManually()',
               '[init] cancelled $CancelledManually()',
             ]);
 
             expect(resultsToStrings(), [
               '[init] $CancelledManually()',
-              '[incrementA] $RemovedFromQueueManually()',
-              '[incrementB] $RemovedFromQueueManually()',
-              '[finish] $RemovedFromQueueManually()',
+              '[incrementA] $RemovedManually()',
+              '[incrementB] $RemovedManually()',
+              '[finish] $RemovedManually()',
             ]);
           }),
         );
@@ -310,16 +310,16 @@ void main() {
               'state: $Working(a: 0, b: 0)',
               '[init] done',
               '[incrementA] started',
-              '[incrementB] removed $RemovedFromQueueManually()',
-              '[finish] removed $RemovedFromQueueManually()',
+              '[incrementB] removed $RemovedManually()',
+              '[finish] removed $RemovedManually()',
               '[incrementA] cancelled $CancelledManually()',
             ]);
 
             expect(resultsToStrings(), [
               '[init] completed',
               '[incrementA] $CancelledManually()',
-              '[incrementB] $RemovedFromQueueManually()',
-              '[finish] $RemovedFromQueueManually()',
+              '[incrementB] $RemovedManually()',
+              '[finish] $RemovedManually()',
             ]);
           }),
         );
@@ -346,7 +346,7 @@ void main() {
               'state: $Working(a: 1, b: 0)',
               '[incrementA] done',
               '[incrementB] started',
-              '[finish] removed $RemovedFromQueueManually()',
+              '[finish] removed $RemovedManually()',
               '[incrementB] cancelled $CancelledManually()',
             ]);
 
@@ -354,7 +354,7 @@ void main() {
               '[init] completed',
               '[incrementA] completed',
               '[incrementB] $CancelledManually()',
-              '[finish] $RemovedFromQueueManually()',
+              '[finish] $RemovedManually()',
             ]);
           }),
         );
@@ -511,17 +511,17 @@ void main() {
             expect(conveyor.log.log, [
               'externalSetState: $Disposed()',
               'state: $Disposed()',
-              '[init] removed $RemovedFromQueueByEventRules(is not $NotDisposed)',
-              '[incrementA] removed $RemovedFromQueueByEventRules(is not $Working)',
-              '[incrementB] removed $RemovedFromQueueByEventRules(is not $Working)',
-              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[init] removed $RemovedByEventRules(is not $NotDisposed)',
+              '[incrementA] removed $RemovedByEventRules(is not $Working)',
+              '[incrementB] removed $RemovedByEventRules(is not $Working)',
+              '[finish] removed $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
-              '[init] $RemovedFromQueueByEventRules(is not $NotDisposed)',
-              '[incrementA] $RemovedFromQueueByEventRules(is not $Working)',
-              '[incrementB] $RemovedFromQueueByEventRules(is not $Working)',
-              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[init] $RemovedByEventRules(is not $NotDisposed)',
+              '[incrementA] $RemovedByEventRules(is not $Working)',
+              '[incrementB] $RemovedByEventRules(is not $Working)',
+              '[finish] $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -543,16 +543,16 @@ void main() {
               'externalSetState: $Disposed()',
               'state: $Disposed()',
               '[init] cancelled $CancelledByEventRules(is not $NotDisposed)',
-              '[incrementA] removed $RemovedFromQueueByEventRules(is not $Working)',
-              '[incrementB] removed $RemovedFromQueueByEventRules(is not $Working)',
-              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[incrementA] removed $RemovedByEventRules(is not $Working)',
+              '[incrementB] removed $RemovedByEventRules(is not $Working)',
+              '[finish] removed $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
               '[init] $CancelledByEventRules(is not $NotDisposed)',
-              '[incrementA] $RemovedFromQueueByEventRules(is not $Working)',
-              '[incrementB] $RemovedFromQueueByEventRules(is not $Working)',
-              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[incrementA] $RemovedByEventRules(is not $Working)',
+              '[incrementB] $RemovedByEventRules(is not $Working)',
+              '[finish] $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -575,16 +575,16 @@ void main() {
               'externalSetState: $Disposed()',
               'state: $Disposed()',
               '[init] cancelled $CancelledByEventRules(is not $NotDisposed)',
-              '[incrementA] removed $RemovedFromQueueByEventRules(is not $Working)',
-              '[incrementB] removed $RemovedFromQueueByEventRules(is not $Working)',
-              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[incrementA] removed $RemovedByEventRules(is not $Working)',
+              '[incrementB] removed $RemovedByEventRules(is not $Working)',
+              '[finish] removed $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
               '[init] $CancelledByEventRules(is not $NotDisposed)',
-              '[incrementA] $RemovedFromQueueByEventRules(is not $Working)',
-              '[incrementB] $RemovedFromQueueByEventRules(is not $Working)',
-              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[incrementA] $RemovedByEventRules(is not $Working)',
+              '[incrementB] $RemovedByEventRules(is not $Working)',
+              '[finish] $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -608,16 +608,16 @@ void main() {
               'externalSetState: $Disposed()',
               'state: $Disposed()',
               '[init] cancelled $CancelledByEventRules(is not $NotDisposed)',
-              '[incrementA] removed $RemovedFromQueueByEventRules(is not $Working)',
-              '[incrementB] removed $RemovedFromQueueByEventRules(is not $Working)',
-              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[incrementA] removed $RemovedByEventRules(is not $Working)',
+              '[incrementB] removed $RemovedByEventRules(is not $Working)',
+              '[finish] removed $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
               '[init] $CancelledByEventRules(is not $NotDisposed)',
-              '[incrementA] $RemovedFromQueueByEventRules(is not $Working)',
-              '[incrementB] $RemovedFromQueueByEventRules(is not $Working)',
-              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[incrementA] $RemovedByEventRules(is not $Working)',
+              '[incrementB] $RemovedByEventRules(is not $Working)',
+              '[finish] $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -642,16 +642,16 @@ void main() {
               'externalSetState: $Disposed()',
               'state: $Disposed()',
               '[init] cancelled $CancelledByEventRules(is not $NotDisposed)',
-              '[incrementA] removed $RemovedFromQueueByEventRules(is not $Working)',
-              '[incrementB] removed $RemovedFromQueueByEventRules(is not $Working)',
-              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[incrementA] removed $RemovedByEventRules(is not $Working)',
+              '[incrementB] removed $RemovedByEventRules(is not $Working)',
+              '[finish] removed $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
               '[init] $CancelledByEventRules(is not $NotDisposed)',
-              '[incrementA] $RemovedFromQueueByEventRules(is not $Working)',
-              '[incrementB] $RemovedFromQueueByEventRules(is not $Working)',
-              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[incrementA] $RemovedByEventRules(is not $Working)',
+              '[incrementB] $RemovedByEventRules(is not $Working)',
+              '[finish] $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -679,15 +679,15 @@ void main() {
               'externalSetState: $Disposed()',
               'state: $Disposed()',
               '[incrementA] cancelled $CancelledByEventRules(is not $Working)',
-              '[incrementB] removed $RemovedFromQueueByEventRules(is not $Working)',
-              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[incrementB] removed $RemovedByEventRules(is not $Working)',
+              '[finish] removed $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
               '[init] completed',
               '[incrementA] $CancelledByEventRules(is not $Working)',
-              '[incrementB] $RemovedFromQueueByEventRules(is not $Working)',
-              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[incrementB] $RemovedByEventRules(is not $Working)',
+              '[finish] $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -718,14 +718,14 @@ void main() {
               'externalSetState: $Disposed()',
               'state: $Disposed()',
               '[incrementB] cancelled $CancelledByEventRules(is not $Working)',
-              '[finish] removed $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[finish] removed $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
 
             expect(resultsToStrings(), [
               '[init] completed',
               '[incrementA] completed',
               '[incrementB] $CancelledByEventRules(is not $Working)',
-              '[finish] $RemovedFromQueueByEventRules(checkStateBeforeProcessing)',
+              '[finish] $RemovedByEventRules(checkStateBeforeProcessing)',
             ]);
           }),
         );
@@ -963,14 +963,14 @@ void main() {
             expect(conveyor.log.log, [
               '[test1] started',
               '[test1] done',
-              '[test2] removed $RemovedFromQueueByEventRules(is not $Preparing)',
-              '[test3] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[test2] removed $RemovedByEventRules(is not $Preparing)',
+              '[test3] removed $RemovedByEventRules(is not $Working)',
             ]);
 
             expect(resultsToStrings(), [
               '[test1] completed',
-              '[test2] $RemovedFromQueueByEventRules(is not $Preparing)',
-              '[test3] $RemovedFromQueueByEventRules(is not $Working)',
+              '[test2] $RemovedByEventRules(is not $Preparing)',
+              '[test3] $RemovedByEventRules(is not $Working)',
             ]);
           }),
         );
@@ -985,16 +985,16 @@ void main() {
             expect(conveyor.log.log, [
               'externalSetState: $Preparing(progress: 0)',
               'state: $Preparing(progress: 0)',
-              '[test1] removed $RemovedFromQueueByEventRules(is not $Initial)',
+              '[test1] removed $RemovedByEventRules(is not $Initial)',
               '[test2] started',
               '[test2] done',
-              '[test3] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[test3] removed $RemovedByEventRules(is not $Working)',
             ]);
 
             expect(resultsToStrings(), [
-              '[test1] $RemovedFromQueueByEventRules(is not $Initial)',
+              '[test1] $RemovedByEventRules(is not $Initial)',
               '[test2] completed',
-              '[test3] $RemovedFromQueueByEventRules(is not $Working)',
+              '[test3] $RemovedByEventRules(is not $Working)',
             ]);
           }),
         );
@@ -1009,15 +1009,15 @@ void main() {
             expect(conveyor.log.log, [
               'externalSetState: $Working(a: 0, b: 0)',
               'state: $Working(a: 0, b: 0)',
-              '[test1] removed $RemovedFromQueueByEventRules(is not $Initial)',
-              '[test2] removed $RemovedFromQueueByEventRules(is not $Preparing)',
+              '[test1] removed $RemovedByEventRules(is not $Initial)',
+              '[test2] removed $RemovedByEventRules(is not $Preparing)',
               '[test3] started',
               '[test3] done',
             ]);
 
             expect(resultsToStrings(), [
-              '[test1] $RemovedFromQueueByEventRules(is not $Initial)',
-              '[test2] $RemovedFromQueueByEventRules(is not $Preparing)',
+              '[test1] $RemovedByEventRules(is not $Initial)',
+              '[test2] $RemovedByEventRules(is not $Preparing)',
               '[test3] completed',
             ]);
           }),
@@ -1033,15 +1033,15 @@ void main() {
             expect(conveyor.log.log, [
               'externalSetState: $Disposed()',
               'state: $Disposed()',
-              '[test1] removed $RemovedFromQueueByEventRules(is not $Initial)',
-              '[test2] removed $RemovedFromQueueByEventRules(is not $Preparing)',
-              '[test3] removed $RemovedFromQueueByEventRules(is not $Working)',
+              '[test1] removed $RemovedByEventRules(is not $Initial)',
+              '[test2] removed $RemovedByEventRules(is not $Preparing)',
+              '[test3] removed $RemovedByEventRules(is not $Working)',
             ]);
 
             expect(resultsToStrings(), [
-              '[test1] $RemovedFromQueueByEventRules(is not $Initial)',
-              '[test2] $RemovedFromQueueByEventRules(is not $Preparing)',
-              '[test3] $RemovedFromQueueByEventRules(is not $Working)',
+              '[test1] $RemovedByEventRules(is not $Initial)',
+              '[test2] $RemovedByEventRules(is not $Preparing)',
+              '[test3] $RemovedByEventRules(is not $Working)',
             ]);
           }),
         );
@@ -1097,7 +1097,7 @@ void main() {
         );
       });
 
-      group('State provider.', () {
+      group('State providers.', () {
         test(
           'check event rules - cancel',
           () => fakeAsync((async) {
@@ -1120,7 +1120,7 @@ void main() {
               key: 'test3',
               (state) async* {
                 conveyor.testSetState(const Disposed());
-                yield state.value;
+                yield state.it;
               },
             );
             final event4 = TestEvent<Disposed>(
@@ -1186,7 +1186,7 @@ void main() {
             final event3 = TestEvent<Initial>(
               key: 'test3',
               (state) async* {
-                yield state.value;
+                yield state.it;
               },
             );
             final event4 = TestEvent<Initial>(
@@ -1248,7 +1248,7 @@ void main() {
               key: 'test3',
               (state) async* {
                 conveyor.testSetState(const Disposed());
-                yield state.test((it) => true).value;
+                yield state.test((it) => true).it;
               },
             );
             final event4 = TestEvent<Disposed>(
@@ -1314,7 +1314,7 @@ void main() {
             final event3 = TestEvent<Initial>(
               key: 'test3',
               (state) async* {
-                yield state.test((it) => true).value;
+                yield state.test((it) => true).it;
               },
             );
             final event4 = TestEvent<Initial>(
@@ -1376,7 +1376,7 @@ void main() {
               key: 'test3',
               (state) async* {
                 conveyor.testSetState(const Disposed());
-                yield state.isA<Disposed>().value as Working;
+                yield state.isA<Disposed>().it as Working;
               },
             );
             final event4 = TestEvent<Disposed>(
@@ -1442,7 +1442,7 @@ void main() {
             final event3 = TestEvent<Initial>(
               key: 'test3',
               (state) async* {
-                yield state.isA<Initial>().value;
+                yield state.isA<Initial>().it;
               },
             );
             final event4 = TestEvent<Initial>(
@@ -1504,7 +1504,7 @@ void main() {
               key: 'test3',
               (state) async* {
                 conveyor.testSetState(const Disposed());
-                yield state.map<Working>((it) => it).value;
+                yield state.map<Working>((it) => it).it;
               },
             );
             final event4 = TestEvent<Disposed>(
@@ -1570,7 +1570,7 @@ void main() {
             final event3 = TestEvent<Initial>(
               key: 'test3',
               (state) async* {
-                yield state.map<Initial>((it) => it).value;
+                yield state.map<Initial>((it) => it).it;
               },
             );
             final event4 = TestEvent<Initial>(
@@ -1632,8 +1632,7 @@ void main() {
               key: 'test3',
               (state) async* {
                 conveyor.testSetState(const Disposed());
-                yield state.isA<TestState>().test((it) => true).value
-                    as Working;
+                yield state.isA<TestState>().test((it) => true).it as Working;
               },
             );
             final event4 = TestEvent<Disposed>(
@@ -1702,7 +1701,7 @@ void main() {
             final event3 = TestEvent<Initial>(
               key: 'test3',
               (state) async* {
-                yield state.isA<Initial>().test((it) => true).value;
+                yield state.isA<Initial>().test((it) => true).it;
               },
             );
             final event4 = TestEvent<Initial>(
@@ -1761,7 +1760,7 @@ void main() {
             final event3 = TestEvent<Initial>(
               key: 'test3',
               (state) async* {
-                yield state.isA<Initial>().isA<Working>().isA<Initial>().value;
+                yield state.isA<Initial>().isA<Working>().isA<Initial>().it;
               },
             );
             final event4 = TestEvent<Initial>(
@@ -1822,11 +1821,7 @@ void main() {
             final event3 = TestEvent<Initial>(
               key: 'test3',
               (state) async* {
-                yield state
-                    .isA<Initial>()
-                    .isA<TestState>()
-                    .isA<Initial>()
-                    .value;
+                yield state.isA<Initial>().isA<TestState>().isA<Initial>().it;
               },
             );
             final event4 = TestEvent<Initial>(
@@ -1871,16 +1866,16 @@ void main() {
         );
       });
 
-      group('State provider + checkStateBeforeProcessing.', () {
+      group('checkStateBeforeProcessing.', () {
         test(
-          'value',
+          'it',
           () => fakeAsync((async) {
             final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
                 yield const Preparing();
-                yield state.value;
+                yield state.it;
               },
             );
 
@@ -1931,14 +1926,14 @@ void main() {
         );
 
         test(
-          'test.value',
+          'test.it',
           () => fakeAsync((async) {
             final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
                 yield const Preparing();
-                yield state.test((it) => true).value;
+                yield state.test((it) => true).it;
               },
             );
 
@@ -1989,14 +1984,14 @@ void main() {
         );
 
         test(
-          'isA.value',
+          'isA.it',
           () => fakeAsync((async) {
             final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
                 yield const Preparing();
-                yield state.isA<Preparing>().value;
+                yield state.isA<Preparing>().it;
               },
             );
 
@@ -2047,17 +2042,14 @@ void main() {
         );
 
         test(
-          'isA.test.value',
+          'isA.test.it',
           () => fakeAsync((async) {
             final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
                 yield const Preparing();
-                yield state
-                    .isA<Preparing>()
-                    .test((it) => it.progress == 0)
-                    .value;
+                yield state.isA<Preparing>().test((it) => it.progress == 0).it;
               },
             );
 
@@ -2111,14 +2103,14 @@ void main() {
         );
 
         test(
-          'isA.isA<Preparing>.value',
+          'isA.isA<Preparing>.it',
           () => fakeAsync((async) {
             final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
                 yield const Preparing();
-                yield state.isA<Preparing>().isA<Preparing>().value;
+                yield state.isA<Preparing>().isA<Preparing>().it;
               },
             );
 
@@ -2169,14 +2161,14 @@ void main() {
         );
 
         test(
-          'isA.isA<Working>.value',
+          'isA.isA<Working>.it',
           () => fakeAsync((async) {
             final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
                 yield const Preparing();
-                yield state.isA<Preparing>().isA<Working>().value;
+                yield state.isA<Preparing>().isA<Working>().it;
               },
             );
 
@@ -2225,14 +2217,14 @@ void main() {
         );
 
         test(
-          'isA.isA<TestState>.value',
+          'isA.isA<TestState>.it',
           () => fakeAsync((async) {
             final event = TestEvent<TestState>(
               key: 'test',
               checkStateBeforeProcessing: (state) => state is Initial,
               (state) async* {
                 yield const Preparing();
-                yield state.isA<Preparing>().isA<TestState>().value;
+                yield state.isA<Preparing>().isA<TestState>().it;
               },
             );
 
@@ -2278,6 +2270,100 @@ void main() {
 
             expect(resultsToStrings(), [
               '[test] completed',
+            ]);
+          }),
+        );
+      });
+
+      group('checkState.', () {
+        setUp(() {
+          conveyor.externalSetState(const Preparing());
+          conveyor.log.log;
+        });
+
+        test(
+          'yield',
+          () => fakeAsync((async) {
+            final event = TestEvent<TestState>(
+              key: 'test',
+              checkState: (state) => state is Preparing,
+              (state) async* {
+                yield const Working();
+              },
+            );
+
+            conveyor.queue.add(event).saveToResults(results);
+
+            async.waitFuture(awaitResults());
+
+            expect(conveyor.log.log, [
+              '[test] started',
+              '[test] cancelled $CancelledByEventRules(checkState)',
+            ]);
+
+            expect(resultsToStrings(), [
+              '[test] $CancelledByEventRules(checkState)',
+            ]);
+          }),
+        );
+
+        /// Суть ровно та же, что и в предыдущем тесте: yield не пропускает
+        /// неправильное состояние. Но при отладке видно, что map.it пропускают
+        /// неправильное значение.
+        test(
+          'it/use/check',
+          () => fakeAsync((async) {
+            final event1 = TestEvent<TestState>(
+              key: 'test1',
+              checkState: (state) => state is Preparing,
+              (state) async* {
+                final newState = state.map((_) => const Working()).it;
+                state.log('map.it - ok');
+                yield newState;
+              },
+            );
+            final event2 = TestEvent<TestState>(
+              key: 'test2',
+              checkState: (state) => state is Preparing,
+              (state) async* {
+                final newState =
+                    state.map((_) => const Working()).use((it) => it);
+                state.log('map.use - ok');
+                yield newState;
+              },
+            );
+            final event3 = TestEvent<TestState>(
+              key: 'test3',
+              checkState: (state) => state is Preparing,
+              (state) async* {
+                state.map((_) => const Working()).check();
+                state.log('map.check - ok');
+              },
+            );
+
+            conveyor.queue
+              ..add(event1).saveToResults(results)
+              ..add(event2).saveToResults(results)
+              ..add(event3).saveToResults(results);
+
+            async.waitFuture(awaitResults());
+
+            expect(conveyor.log.log, [
+              '[test1] started',
+              '[test1] map.it - ok',
+              '[test1] cancelled $CancelledByEventRules(checkState)',
+              '[test2] started',
+              '[test2] map.use - ok',
+              '[test2] cancelled $CancelledByEventRules(checkState)',
+              '[test3] started',
+              '[test3] map.check - ok',
+              '[test3] done',
+            ]);
+
+            expect(resultsToStrings(), [
+              '[test1] $CancelledByEventRules(checkState)',
+              '[test2] $CancelledByEventRules(checkState)',
+              '[test3] completed',
             ]);
           }),
         );
@@ -2599,7 +2685,7 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 1);
 
             expect(conveyor.log.log, [
-              '[droppable2] removed $RemovedFromQueueManually()',
+              '[droppable2] removed $RemovedManually()',
               '[droppable1] started',
               'state: $Special(droppable: 1)',
               '[droppable1] done',
@@ -2607,7 +2693,7 @@ void main() {
 
             expect(resultsToStrings(), [
               '[droppable1] completed',
-              '[droppable2] $RemovedFromQueueManually()',
+              '[droppable2] $RemovedManually()',
             ]);
           }),
         );
@@ -2628,7 +2714,7 @@ void main() {
             expect((conveyor.state as Special).droppableCount, 1);
 
             expect(conveyor.log.log, [
-              '[droppable2] removed $RemovedFromQueueManually()',
+              '[droppable2] removed $RemovedManually()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -2647,7 +2733,7 @@ void main() {
               '[noop1] completed',
               '[droppable1] completed',
               '[noop2] completed',
-              '[droppable2] $RemovedFromQueueManually()',
+              '[droppable2] $RemovedManually()',
               '[noop3] completed',
             ]);
           }),
@@ -2668,14 +2754,14 @@ void main() {
 
             expect(conveyor.log.log, [
               '[droppable1] started',
-              '[droppable2] removed $RemovedFromQueueManually()',
+              '[droppable2] removed $RemovedManually()',
               'state: $Special(droppable: 1)',
               '[droppable1] done',
             ]);
 
             expect(resultsToStrings(), [
               '[droppable1] completed',
-              '[droppable2] RemovedFromQueueManually()',
+              '[droppable2] $RemovedManually()',
             ]);
           }),
         );
@@ -2701,7 +2787,7 @@ void main() {
               'state: $Special(noop: 1)',
               '[noop1] done',
               '[droppable1] started',
-              '[droppable2] removed $RemovedFromQueueManually()',
+              '[droppable2] removed $RemovedManually()',
               'state: $Special(noop: 1, droppable: 1)',
               '[droppable1] done',
               '[noop2] started',
@@ -2716,7 +2802,7 @@ void main() {
               '[noop1] completed',
               '[droppable1] completed',
               '[noop2] completed',
-              '[droppable2] RemovedFromQueueManually()',
+              '[droppable2] $RemovedManually()',
               '[noop3] completed',
             ]);
           }),
@@ -3015,7 +3101,7 @@ void main() {
             expect((conveyor.state as Special).restartableCount, 2);
 
             expect(conveyor.log.log, [
-              '[restartable1] removed $RemovedFromQueueManually()',
+              '[restartable1] removed $RemovedManually()',
               '[restartable2] started',
               'state: $Special(restartable: 1)',
               'state: $Special(restartable: 2)',
@@ -3023,7 +3109,7 @@ void main() {
             ]);
 
             expect(resultsToStrings(), [
-              '[restartable1] $RemovedFromQueueManually()',
+              '[restartable1] $RemovedManually()',
               '[restartable2] completed',
             ]);
           }),
@@ -3043,7 +3129,7 @@ void main() {
             expect((conveyor.state as Special).restartableCount, 2);
 
             expect(conveyor.log.log, [
-              '[restartable1] removed $RemovedFromQueueManually()',
+              '[restartable1] removed $RemovedManually()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -3061,7 +3147,7 @@ void main() {
 
             expect(resultsToStrings(), [
               '[noop1] completed',
-              '[restartable1] $RemovedFromQueueManually()',
+              '[restartable1] $RemovedManually()',
               '[noop2] completed',
               '[restartable2] completed',
               '[noop3] completed',
@@ -3259,7 +3345,7 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 1);
 
             expect(conveyor.log.log, [
-              '[debounce2] removed $RemovedFromQueueManually()',
+              '[debounce2] removed $RemovedManually()',
               '[debounce1] started',
               'state: $Special(debounce: 1)',
               '[debounce1] done',
@@ -3267,7 +3353,7 @@ void main() {
 
             expect(resultsToStrings(), [
               '[debounce1] completed',
-              '[debounce2] $RemovedFromQueueManually()',
+              '[debounce2] $RemovedManually()',
             ]);
           }),
         );
@@ -3288,7 +3374,7 @@ void main() {
             expect((conveyor.state as Special).debounceCount, 1);
 
             expect(conveyor.log.log, [
-              '[debounce2] removed $RemovedFromQueueManually()',
+              '[debounce2] removed $RemovedManually()',
               '[noop1] started',
               'state: $Special(noop: 1)',
               '[noop1] done',
@@ -3307,7 +3393,7 @@ void main() {
               '[noop1] completed',
               '[debounce1] completed',
               '[noop2] completed',
-              '[debounce2] $RemovedFromQueueManually()',
+              '[debounce2] $RemovedManually()',
               '[noop3] completed',
             ]);
           }),
@@ -3330,12 +3416,12 @@ void main() {
               '[debounce1] started',
               'state: $Special(debounce: 1)',
               '[debounce1] done',
-              '[debounce2] removed $RemovedFromQueueManually()',
+              '[debounce2] removed $RemovedManually()',
             ]);
 
             expect(resultsToStrings(), [
               '[debounce1] completed',
-              '[debounce2] $RemovedFromQueueManually()',
+              '[debounce2] $RemovedManually()',
             ]);
           }),
         );
@@ -3366,7 +3452,7 @@ void main() {
               '[noop2] started',
               'state: $Special(noop: 2, debounce: 1)',
               '[noop2] done',
-              '[debounce2] removed $RemovedFromQueueManually()',
+              '[debounce2] removed $RemovedManually()',
               '[noop3] started',
               'state: $Special(noop: 3, debounce: 1)',
               '[noop3] done',
@@ -3376,7 +3462,7 @@ void main() {
               '[noop1] completed',
               '[debounce1] completed',
               '[noop2] completed',
-              '[debounce2] $RemovedFromQueueManually()',
+              '[debounce2] $RemovedManually()',
               '[noop3] completed',
             ]);
           }),
@@ -3812,13 +3898,13 @@ void main() {
             '[test1] started',
             'state: $Preparing(progress: 0)',
             '> [test2] started',
-            '> [test2] cancelled $CancelledManually()',
+            '> [test2] cancelled $CancelledByParent()',
             '[test1] cancelled $CancelledManually()',
           ]);
 
           expect(resultsToStrings(), [
             '[test1] $CancelledManually()',
-            '[test2] $CancelledManually()',
+            '[test2] $CancelledByParent()',
           ]);
         }),
       );
@@ -3840,15 +3926,15 @@ void main() {
             '> [test2] started',
             'state: $Preparing(progress: 50)',
             '>> [test3] started',
-            '>> [test3] cancelled $CancelledManually()',
-            '> [test2] cancelled $CancelledManually()',
+            '>> [test3] cancelled $CancelledByParent()',
+            '> [test2] cancelled $CancelledByParent()',
             '[test1] cancelled $CancelledManually()',
           ]);
 
           expect(resultsToStrings(), [
             '[test1] $CancelledManually()',
-            '[test2] $CancelledManually()',
-            '[test3] $CancelledManually()',
+            '[test2] $CancelledByParent()',
+            '[test3] $CancelledByParent()',
           ]);
         }),
       );
@@ -4407,6 +4493,214 @@ void main() {
             '[test1] completed',
             '[test2] completed',
             '[test3] completed',
+          ]);
+        }),
+      );
+    });
+
+    group('Check state on yield.', () {
+      void addEvents({
+        bool Function(Preparing state)? parentCheckState,
+        bool Function(Preparing state)? childCheckState,
+        TestEvent<TestState>? innerEvent,
+      }) {
+        final event = TestEvent<Preparing>(
+          key: 'parent',
+          checkState: parentCheckState,
+          (state) async* {
+            await Future<void>.delayed(const Duration(milliseconds: 100));
+
+            final innerEvent_ = innerEvent ??
+                TestEvent<Preparing>(
+                  key: 'child',
+                  checkState: childCheckState,
+                  (state) async* {
+                    yield const Preparing(progress: 25);
+                    yield const Preparing(progress: 50);
+                    yield const Preparing(progress: 75);
+                  },
+                )
+              ..saveToResults(results);
+
+            yield* state.run(innerEvent_);
+
+            yield const Preparing(progress: 100);
+            await Future<void>.delayed(const Duration(milliseconds: 100));
+          },
+        );
+
+        conveyor.queue.add(event).saveToResults(results);
+      }
+
+      setUp(() {
+        conveyor.externalSetState(const Preparing());
+        conveyor.log.log;
+      });
+
+      test(
+        'Standart flow',
+        () => fakeAsync((async) {
+          addEvents();
+
+          async.waitFuture(awaitResults());
+
+          expect(async.elapsed, const Duration(milliseconds: 200));
+
+          expect(conveyor.log.log, [
+            '[parent] started',
+            '> [child] started',
+            'state: $Preparing(progress: 25)',
+            'state: $Preparing(progress: 50)',
+            'state: $Preparing(progress: 75)',
+            '> [child] done',
+            'state: $Preparing(progress: 100)',
+            '[parent] done',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[parent] completed',
+            '[child] completed',
+          ]);
+        }),
+      );
+
+      test(
+        "Child sends an invalid parents's state (checkState)",
+        () => fakeAsync((async) {
+          addEvents(
+            parentCheckState: (state) => state.progress != 50,
+          );
+
+          async.waitFuture(awaitResults());
+
+          expect(async.elapsed, const Duration(milliseconds: 100));
+
+          expect(conveyor.log.log, [
+            '[parent] started',
+            '> [child] started',
+            'state: Preparing(progress: 25)',
+            '> [child] cancelled $CancelledByParent()',
+            '[parent] cancelled $CancelledByEventRules(checkState)',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[parent] $CancelledByEventRules(checkState)',
+            '[child] $CancelledByParent()',
+          ]);
+        }),
+      );
+
+      test(
+        "Child sends an invalid parents's state (another state type)",
+        () => fakeAsync((async) {
+          addEvents(
+            innerEvent: TestEvent<PreparingAndWorking>(
+              key: 'child',
+              (state) async* {
+                yield const Working();
+              },
+            ),
+          );
+
+          async.waitFuture(awaitResults());
+
+          expect(async.elapsed, const Duration(milliseconds: 100));
+
+          expect(conveyor.log.log, [
+            '[parent] started',
+            '> [child] started',
+            '> [child] cancelled $CancelledByParent()',
+            '[parent] cancelled $CancelledByEventRules(is not Preparing)',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[parent] $CancelledByEventRules(is not Preparing)',
+            '[child] $CancelledByParent()',
+          ]);
+        }),
+      );
+
+      test(
+        'Child yield an invalid state',
+        () => fakeAsync((async) {
+          addEvents(
+            childCheckState: (state) => state.progress != 50,
+          );
+
+          async.waitFuture(awaitResults());
+
+          expect(async.elapsed, const Duration(milliseconds: 200));
+
+          expect(conveyor.log.log, [
+            '[parent] started',
+            '> [child] started',
+            'state: $Preparing(progress: 25)',
+            '> [child] cancelled $CancelledByEventRules(checkState)',
+            'state: $Preparing(progress: 100)',
+            '[parent] done',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[parent] completed',
+            '[child] $CancelledByEventRules(checkState)',
+          ]);
+        }),
+      );
+
+      test(
+        "Invalid parents's and child's state",
+        () => fakeAsync((async) {
+          addEvents(
+            parentCheckState: (state) => state.progress != 50,
+            childCheckState: (state) => state.progress != 50,
+          );
+
+          async.waitFuture(awaitResults());
+
+          expect(async.elapsed, const Duration(milliseconds: 200));
+
+          // Так как внутреннее событие прерывается при проверке собственного
+          // [checkState], то проверка в родительском событии не
+          // осуществляется, и оно продолжает успешно работать дальше.
+          expect(conveyor.log.log, [
+            '[parent] started',
+            '> [child] started',
+            'state: Preparing(progress: 25)',
+            '> [child] cancelled $CancelledByEventRules(checkState)',
+            'state: Preparing(progress: 100)',
+            '[parent] done',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[parent] completed',
+            '[child] $CancelledByEventRules(checkState)',
+          ]);
+        }),
+      );
+
+      test(
+        'Change state after 50 ms',
+        () => fakeAsync((async) {
+          addEvents();
+
+          async.elapse(const Duration(milliseconds: 50));
+          conveyor.testSetState(const Disposed());
+
+          async.waitFuture(awaitResults());
+
+          expect(async.elapsed, const Duration(milliseconds: 100));
+
+          expect(conveyor.log.log, [
+            '[parent] started',
+            'testSetState: $Disposed()',
+            'state: $Disposed()',
+            '[child] removed $RemovedByEventRules(is not $Preparing)',
+            '[parent] cancelled $CancelledByEventRules(is not $Preparing)',
+          ]);
+
+          expect(resultsToStrings(), [
+            '[parent] $CancelledByEventRules(is not $Preparing)',
+            '[child] $RemovedByEventRules(is not $Preparing)',
           ]);
         }),
       );

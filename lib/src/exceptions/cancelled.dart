@@ -44,6 +44,14 @@ final class CancelledManually extends Cancelled {
   String toString() => '$CancelledManually()';
 }
 
+/// Отменено родительским процессом.
+final class CancelledByParent extends Cancelled {
+  const CancelledByParent._() : super._();
+
+  @override
+  String toString() => '$CancelledByParent()';
+}
+
 /// Состояние не удовлетворяет условиям обработки события.
 ///
 /// Причина срабатывает при изменении состояния во время обработки
@@ -67,8 +75,7 @@ final class CancelledByEventRules extends Cancelled {
 ///
 /// Причина срабатывает при ручной проверке с помощью [ConveyorStateProvider]
 /// через дополнительные условия [ConveyorStateProvider.test],
-/// [ConveyorStateProvider.isA], [ConveyorStateProvider.map],
-/// [ConveyorStateProvider.strongMap].
+/// [ConveyorStateProvider.isA], [ConveyorStateProvider.map].
 final class CancelledByCheckState extends Cancelled {
   final String? description;
 
@@ -83,22 +90,22 @@ final class CancelledByCheckState extends Cancelled {
 /// ```
 /// conveyor.remove(...);
 /// ```
-final class RemovedFromQueueManually extends Cancelled {
-  const RemovedFromQueueManually._() : super._();
+final class RemovedManually extends Cancelled {
+  const RemovedManually._() : super._();
 
   @override
-  String toString() => '$RemovedFromQueueManually()';
+  String toString() => '$RemovedManually()';
 }
 
 /// Удалено из очереди, потому что состояние не удовлетворяет условиям
 /// обработки события.
 ///
 /// Причина срабатывает при поиске очередного события для обработки.
-final class RemovedFromQueueByEventRules extends Cancelled {
+final class RemovedByEventRules extends Cancelled {
   final String? description;
 
-  const RemovedFromQueueByEventRules._([this.description]) : super._();
+  const RemovedByEventRules._([this.description]) : super._();
 
   @override
-  String toString() => '$RemovedFromQueueByEventRules(${description ?? ''})';
+  String toString() => '$RemovedByEventRules(${description ?? ''})';
 }

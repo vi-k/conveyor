@@ -7,6 +7,8 @@ final class TestEvent<WorkingState extends TestState>
   TestEvent(
     super.callback, {
     required String super.key,
+    super.uncancellable,
+    super.unkilled,
     super.checkStateBeforeProcessing,
     super.checkStateOnExternalChange,
     super.checkState,

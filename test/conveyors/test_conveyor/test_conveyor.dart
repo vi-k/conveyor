@@ -61,6 +61,14 @@ final class TestConveyor extends Conveyor<TestState, TestEvent>
   }
 
   @override
+  void onLog(
+    ConveyorProcess<TestState, TestEvent<TestState>> process,
+    String message,
+  ) {
+    log('${_logIndent(process.level)}${process.event} $message');
+  }
+
+  @override
   ConveyorQueue<TestState, TestEvent> get queue => super.queue;
 
   @override

@@ -125,7 +125,7 @@ abstract class Conveyor<BaseState extends Object,
         debug('run $event');
         _handle(event);
       } else {
-        debug('no run');
+        debug('no events');
       }
     });
   }
@@ -228,7 +228,7 @@ abstract class Conveyor<BaseState extends Object,
   ///
   /// Все элементы в очереди, предшествующие искомому элементу и не
   /// соответствующие текущему состоянию, удаляются с признаком
-  /// [RemovedFromQueueByEventRules].
+  /// [RemovedByEventRules].
   Event? _pull() {
     if (_queue.isEmpty) {
       return null;
@@ -252,20 +252,48 @@ abstract class Conveyor<BaseState extends Object,
   }
 
   void _handle(Event event) {
-    final currentProcess = _ConveyorProcess(
+    late final _ConveyorProcess<BaseState, Event> process;
+
+    process = _ConveyorProcess(
       conveyor: this,
       event: event,
       onData: (state) {
-        debug('process $event changed state: $state');
+        debug('$event changed state: $state');
         _setState(state);
       },
       onFinish: () {
         _currentProcess = null;
+
+        // После завершения процесса, удаляем все дочерние процессы, созданные
+        // им (если те были созданы без использования yield* и зависли
+        // в воздухе). Выбрасываем non-fatal, чтобы не прерывать процесс, т.к.
+        // в целом это не мешает продолжать работу.
+        final currentProcesses = _currentProcesses;
+        if (currentProcesses != null) {
+          currentProcesses.remove(process);
+
+          if (currentProcesses.isNotEmpty) {
+            final error = StateError(
+              'Uncompleted child process(es)'
+              ' ${currentProcesses.map((e) => e.event)}'
+              ' was detected after the root process'
+              ' ${process.event} was finished',
+            );
+
+            for (final p in currentProcesses) {
+              p.cancel();
+            }
+
+            Future<void>.error(error);
+          }
+        }
+
         _currentProcesses = null;
         _startLoop();
       },
     );
-    _currentProcess = currentProcess;
-    _currentProcesses = [currentProcess];
+
+    _currentProcess = process;
+    _currentProcesses = [process];
   }
 }

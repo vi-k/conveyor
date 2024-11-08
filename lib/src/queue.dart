@@ -14,36 +14,47 @@ final class ConveyorQueue<BaseState extends Object,
   });
 
   @override
-  Event insert(Event element, {Event? before, Event? after}) {
+  Event insert(
+    // ignore: avoid_renaming_method_parameters
+    Event event, {
+    Event? before,
+    Event? after,
+  }) {
     debug(
-      'insert $element'
+      'insert $event'
       '${before == null ? '' : ' before $before'}'
       '${after == null ? '' : ' after $after'}',
     );
 
     final isEmpty = this.isEmpty;
-    super.insert(element, before: before, after: after);
+    super.insert(event, before: before, after: after);
     if (isEmpty) {
       onResume?.call();
     }
 
-    return element;
+    return event;
   }
 
   @override
-  void remove(Event element) {
-    debug('remove $element');
+  // ignore: avoid_renaming_method_parameters
+  void remove(Event event) {
+    if (event.unkilled) {
+      debug("remove $event - can't be removed");
+      return;
+    }
 
-    super.remove(element);
+    debug('remove $event');
+
+    super.remove(event);
     if (isEmpty) {
       onPause?.call();
     }
 
-    element._result.cancel(
-      const RemovedFromQueueManually._(),
+    event._result.cancel(
+      const RemovedManually._(),
       StackTrace.current,
     );
-    onRemove?.call(element);
+    onRemove?.call(event);
   }
 
   @override

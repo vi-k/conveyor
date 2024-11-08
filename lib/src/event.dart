@@ -16,14 +16,14 @@ abstract base class ConveyorEvent<
   /// Пример:
   ///
   /// ```dart
-  /// final event = MyEvent<MyState, MyEvent, MyWorkingState, MyResultState>(
+  /// final event = MyEvent<MyState, MyEvent, MyWorkingState>(
   ///   ...
   /// );
   /// ```
   ///
   /// Конвейер работает с состоянием `MyState`, являющейся основой для всех
   /// возможных состояний конвейера, но данное событие работает только
-  /// с состоянием `MyWorkingState`, а возвращает `MyResultState`.
+  /// с состоянием `MyWorkingState`.
   ///
   /// Дополнительно могут быть заданы калбэки, проверящие состояние на разных
   /// этапах:
@@ -32,19 +32,19 @@ abstract base class ConveyorEvent<
   ///   обработки. Если подошла очередь выполнения события, а тип текущего
   ///   состояния не соответствует [WorkingState] или проверка
   ///   [checkStateBeforeProcessing] вернула `false`, событие удаляется из
-  ///   очереди с признаком [RemovedFromQueueByEventRules].
+  ///   очереди с признаком [RemovedByEventRules].
   ///
   ///   Пример:
   ///
   ///   ```dart
-  ///   final event = MyEvent<MyState, MyEvent, MyWorkingState, MyResultState>(
+  ///   final event = MyEvent<MyState, MyEvent, MyWorkingState>(
   ///     checkStateBeforeProcessing: (state) => state.param == 42,
   ///     ...
   ///   );
   ///   ```
   ///
-  ///   Событие может начать работу только из состояния MyWorkingState,
-  ///   параметр `param` в котором равен 42.
+  ///   Событие работает только с состоянием MyWorkingState, параметр `param`
+  ///   в котором равен 42.
   ///
   /// - [checkStateOnExternalChange] проверяет состояние при его изменении
   ///   извне (если такое изменение допускается в вашем конвейере). Если
@@ -55,7 +55,7 @@ abstract base class ConveyorEvent<
   ///   Пример 1:
   ///
   ///   ```dart
-  ///   final event = MyEvent<MyState, MyEvent, MyWorkingState, MyResultState>(
+  ///   final event = MyEvent<MyState, MyEvent, MyWorkingState>(
   ///     checkStateOnExternalChange: (state) => state.param == 42,
   ///     ...
   ///   );
@@ -68,7 +68,7 @@ abstract base class ConveyorEvent<
   ///   Пример 2:
   ///
   ///   ```dart
-  ///   final event = MyEvent<MyState, MyEvent, MyWorkingState, MyResultState>(
+  ///   final event = MyEvent<MyState, MyEvent, MyWorkingState>(
   ///     checkStateOnExternalChange: (state) => false,
   ///     ...
   ///   );
@@ -80,20 +80,20 @@ abstract base class ConveyorEvent<
   ///
   /// - [checkState] - общая проверка. Используется во время обработки события
   ///   в провайдере состояния `state`, переданном внутрь обработчика
-  ///   [_process], а также вместо [checkStateBeforeProcessing] и
-  ///   [checkStateOnExternalChange], если они не заданы.
+  ///   [_process], а также вместе с [checkStateBeforeProcessing] и
+  ///   [checkStateOnExternalChange].
   ///
   ///   Пример 1:
   ///
   ///   ```dart
-  ///   final event = MyEvent<MyState, MyEvent, MyWorkingState, MyResultState>(
+  ///   final event = MyEvent<MyState, MyEvent, MyWorkingState>(
   ///     checkState: (state) => state.param == 42,
   ///     (state) async* {
-  ///       yield state.value.copyWith(param: 128);
+  ///       yield state.it.copyWith(param: 128);
   ///
   ///       await ...
   ///
-  ///       state.value;
+  ///       state.it;
   ///     }
   ///     ...
   ///   );
@@ -102,18 +102,15 @@ abstract base class ConveyorEvent<
   ///   Рабочее состояние события: `MyWorkingState`. Тип будет проверяться
   ///   на каждом этапе проверок. Но помимо этого на всех этапах будет
   ///   проверяться и параметр `param` у состояния `MyWorkingState`:
-  ///   и перед стартом события, и при внешних изменениях, и при внутренней
-  ///   проверке с помощью провайдера состояни `state`. При этом внутри
-  ///   обработчика мы можем изменить параметр `param` и это не приведёт
-  ///   к прерыванию события. Отмена произойдёт на второй проверке `state`,
-  ///   если к этому моменту во время `await` внешний источник не вернёт
-  ///   параметру `param` значение 42.
+  ///   и перед стартом события, и при внешних изменениях, и после yield,
+  ///   и при внутренней проверке с помощью провайдера состояни `state`.
+  ///   В данном случае событие установит значение `param` равным 128, но
+  ///   сразу после этого прервётся.
   ///
   ///   Пример 2:
   ///
   ///   ```dart
-  ///   final event = CameraEvent<CameraState, CameraEvent, CameraReadyState,
-  ///       CameraReadyState>(
+  ///   final event = CameraEvent<CameraState, CameraEvent, CameraReadyState>(
   ///     checkStateBeforeProcessing: (state) => state.focusPointSupported
   ///         && state.exposurePointSupported,
   ///     checkState: (state) => state.param == 42,
@@ -122,10 +119,10 @@ abstract base class ConveyorEvent<
   ///         // внешний процесс, меняющий состояние
   ///         await setFocusPoint(point);
   ///         // проверяем, сделал ли он то, что ждём
-  ///         state.test((it) => it.focusPoint == point);
+  ///         state.test((it) => it.focusPoint == point).check();
   ///
   ///         await setExposurePoint(point);
-  ///         state.test((it) => it.exposurePoint == point);
+  ///         state.test((it) => it.exposurePoint == point).check();
   ///
   ///         yield ...
   ///       } on Cancelled {
@@ -140,21 +137,30 @@ abstract base class ConveyorEvent<
   ///   фокус и экспозиция камеры. В начале проверяется готовность камеры
   ///   к работе (состояние `CameraReadyState`) и поддержка камерой установки
   ///   точек экспозиции и фокусировки. В ином случае событие будет удалено
-  ///   из очереди, не запустившись. Параметр `param` проверяться перед
-  ///   стартом не будет: задан калбэк `checkStateBeforeProcessing`, поэтому
-  ///   проверка в `checkState` на этом этапе будет опущена. Но при вызовах
-  ///   внутреннего калбэка `checkState` во время обработки события `param`
-  ///   будет проверяться наряду с `focusPoint` и `exposurePoint`. При любой
-  ///   неудачной проверке работа события будет прервана и вызван блок
-  ///   `on Cancelled`.
+  ///   из очереди, не запустившись. Параметр `param` должен быть равен 42 на
+  ///   всех этапах. При любой неудачной проверке работа события будет прервана
+  ///   и вызван блок `on Cancelled`.
+  ///
+  ///   Обратие внимание, [ConveyorStateProvider.test] является участником
+  ///   цепочки проверок наряду с [ConveyorStateProvider.isA],
+  ///   [ConveyorStateProvider.map], и без конечного потребителя в виде
+  ///   [ConveyorStateProvider.check], [ConveyorStateProvider.it] и
+  ///   [ConveyorStateProvider.use] работать не будет.
   ConveyorEvent(
     this._process, {
     this.key,
+    bool uncancellable = false,
+    this.unkilled = false,
     bool Function(WorkingState state)? checkStateBeforeProcessing,
     bool Function(WorkingState state)? checkStateOnExternalChange,
     bool Function(WorkingState state)? checkState,
     String Function()? debugInfo,
-  })  : _checkStateBeforeProcessing = checkStateBeforeProcessing,
+  })  : assert(
+          !uncancellable || !unkilled,
+          'Only `uncancellable` or `unkilled` can be set',
+        ),
+        uncancellable = uncancellable || unkilled,
+        _checkStateBeforeProcessing = checkStateBeforeProcessing,
         _checkStateOnExternalChange = checkStateOnExternalChange,
         _checkState = checkState,
         _debugInfo = debugInfo,
@@ -174,6 +180,14 @@ abstract base class ConveyorEvent<
 
   final Object? key;
 
+  /// Событие нельзя отменить, если оно уже запущено на обработку.
+  final bool uncancellable;
+
+  /// Событие нельзя ни удалить из очереди, ни отменить во время обработки.
+  ///
+  /// Если [unkilled] установлен, [uncancellable] устанавливается автоматически.
+  final bool unkilled;
+
   final bool Function(WorkingState state)? _checkStateBeforeProcessing;
 
   final bool Function(WorkingState state)? _checkStateOnExternalChange;
@@ -191,18 +205,18 @@ abstract base class ConveyorEvent<
   /// Проверяет состояние перед запуском обработки события.
   void checkStateBeforeProcessing(BaseState state) {
     if (state is! WorkingState) {
-      throw RemovedFromQueueByEventRules._('is not $WorkingState');
+      throw RemovedByEventRules._('is not $WorkingState');
     }
 
     final checkStateBeforeProcessing = _checkStateBeforeProcessing;
     if (checkStateBeforeProcessing != null &&
         !checkStateBeforeProcessing(state)) {
-      throw const RemovedFromQueueByEventRules._('checkStateBeforeProcessing');
+      throw const RemovedByEventRules._('checkStateBeforeProcessing');
     }
 
     final checkState = _checkState;
     if (checkState != null && !checkState(state)) {
-      throw const RemovedFromQueueByEventRules._('checkState');
+      throw const RemovedByEventRules._('checkState');
     }
   }
 
