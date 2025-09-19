@@ -2,98 +2,138 @@
 
 // import 'package:conveyor/conveyor.dart';
 
-// /// Работа с данными:
-// /// - получение данных
-// /// - изменение данных
-// /// - параллельно данные могут меняться внешним источником (изменяться
-// ///   и удалиться)
-// ///
-// /// - событие об изменении данных отменяет предыдущее такое же
-// /// - удаление отменяет все
-
-// sealed class EntityState {
-//   const EntityState();
+// sealed class State {
+//   const State();
 // }
 
-// final class Initial extends EntityState {
-//   const Initial();
+// final class State1 extends State {
+//   final int a;
+//   final int b;
 
-//   @override
-//   String toString() => '$Initial()';
-// }
-
-// enum PreparingStep {
-//   start,
-//   loading,
-//   parsing,
-//   finish;
-
-//   const PreparingStep();
-// }
-
-// final class Preparing extends EntityState {
-//   final PreparingStep step;
-
-//   const Preparing([this.step = PreparingStep.start]);
-
-//   Preparing copyWith({
-//     PreparingStep? step,
-//   }) =>
-//       Preparing(step ?? this.step);
-
-//   @override
-//   String toString() => '$Preparing(step: $step)';
-// }
-
-// final class Working extends EntityState {
-//   final int param1;
-//   final int param2;
-
-//   const Working({
-//     this.param1 = 0,
-//     this.param2 = 0,
+//   State1({
+//     required this.a,
+//     required this.b,
 //   });
 
-//   Working copyWith({
-//     int? param1,
-//     int? param2,
-//   }) =>
-//       Working(
-//         param1: param1 ?? this.param1,
-//         param2: param2 ?? this.param2,
-//       );
+//   State1 copyWith({
+//     int? a,
+//     int? b,
+//   }) {
+//     print('* copyWith');
+//     return State1(
+//       a: a ?? this.a,
+//       b: b ?? this.b,
+//     );
+//   }
 
 //   @override
-//   String toString() => '$Working(a: $param1, b: $param2)';
+//   String toString() => 'State1(a: $a, b: $b)';
 // }
 
-// final class Deleted extends EntityState {
-//   const Deleted();
+// final class State2 extends State {
+//   final int c;
 
-//   @override
-//   String toString() => '$Deleted()';
-// }
-
-// final class EntityEvent<WorkingState extends EntityState> extends ConveyorEvent<
-//     EntityState, EntityEvent<WorkingState>, WorkingState> {
-//   EntityEvent(
-//     super.process, {
-//     super.uncancellable,
-//     super.unkilled,
-//     super.checkStateBeforeProcessing,
-//     super.checkStateOnExternalChange,
-//     super.checkState,
-//     super.debugInfo,
+//   State2({
+//     required this.c,
 //   });
+
+//   State2 copyWith({
+//     int? c,
+//   }) {
+//     print('* copyWith');
+//     return State2(
+//       c: c ?? this.c,
+//     );
+//   }
+
+//   @override
+//   String toString() => 'State2(c: $c)';
 // }
 
-// final class EntityConveyor extends Conveyor<EntityState, EntityEvent>
-//     with ExternalSetState<EntityState, EntityEvent> {
-//   EntityConveyor(super.initialState);
+// State _state = State1(a: 0, b: 0);
+// final StreamController<State> _stateController =
+//     StreamController.broadcast(sync: true);
+// // StreamController.broadcast();
 
-//   // void init() {
-//   //   final event =
-//   // }
+// T state<T extends State>([bool Function(T state)? test]) {
+//   if (_state is! T) {
+//     throw Cancelled(CancelReason.stateTypeChanged);
+//   }
+
+//   final state = _state as T;
+//   if (test != null && !test(state)) {
+//     throw Cancelled(CancelReason.stateDoesNotMeetCondition);
+//   }
+
+//   return state;
 // }
 
-// Future<void> main() async {}
+// void checkState<T extends State>([bool Function(T state)? test]) {
+//   state<T>(test);
+// }
+
+// void _externalSetState(State state) {
+//   print('* externalSetState');
+//   _stateController.add(state);
+// }
+
+// Future<void> main() async {
+//   _stateController.stream.listen((state) {
+//     print('state: $state');
+//     _state = state;
+//   });
+
+//   // Future(() {
+//   //   _externalSetState(_state.copyWith(b: 1));
+//   // });
+
+//   Future.microtask(() {
+//     _externalSetState(State1(a: 0, b: 10));
+//   });
+
+//   final sub = f().listen(
+//     (state) => _stateController.add(state),
+//     onError: (Object error, StackTrace stackTrace) {
+//       if (error is Cancelled) {
+//         print('* cancelled by reason ${error.reason}');
+//       } else {
+//         Error.throwWithStackTrace(error, stackTrace);
+//       }
+//     },
+//     cancelOnError: true,
+//   );
+
+//   // sub.cancel();
+
+//   // Future.microtask(() {
+//   //   // sub.cancel();
+//   //   _externalSetState(State2(c: 2));
+//   // });
+
+//   await Future<void>.delayed(const Duration(milliseconds: 2000));
+//   _stateController.close();
+// }
+
+// Stream<State> f() async* {
+//   try {
+//     print('* start f');
+
+//     yield state<State1>().copyWith(a: 1);
+//     // yield state().copyWith(a: 1);
+
+//     // await Future(() {});
+//     //
+
+//     print('* after yield 1 state=$_state');
+
+//     checkState<State2>();
+
+//     yield state<State1>((state) => state.b < 10).copyWith(a: 2);
+//     print('* after yield 2 state=$_state');
+
+//     yield state<State1>().copyWith(a: 3);
+//     print('* after yield 3 state=$_state');
+//   } finally {
+//     print('* finish f');
+//   }
+// }

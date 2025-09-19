@@ -196,6 +196,8 @@ final class RootConveyorStateProvider<
     this._userCheckState,
   );
 
+  ConveyorResult get result => process.event.result;
+
   OutState _checkState(BaseState state) {
     if (state is! OutState) {
       throw CancelledByEventRules._('is not $OutState');
@@ -243,15 +245,13 @@ final class RootConveyorStateProvider<
       level: process.level + 1,
       event: event,
       onData: (state) {
-        try {
-          if (state is! OutState) {
-            throw CancelledByEventRules._('is not $OutState');
-          }
+        if (state is OutState) {
           debug('$event sent state');
           streamController.add(state);
-        } on Cancelled catch (reason, stackTrace) {
+        } else {
+          final reason = CancelledByEventRules._('is not $OutState');
           debug('$event sent $reason');
-          streamController.addError(reason, stackTrace);
+          streamController.addError(reason, StackTrace.current);
         }
       },
       onFinish: () {

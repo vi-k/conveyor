@@ -4,7 +4,7 @@ final class _SafeLinkedListIterable<T extends LinkedListItem<T>>
     extends Iterable<T> {
   final LinkedList<T> _list;
 
-  _SafeLinkedListIterable(this._list);
+  const _SafeLinkedListIterable(this._list);
 
   @override
   Iterator<T> get iterator => _SafeLinkedListIterator(_list);

@@ -22,7 +22,7 @@ abstract class Conveyor<BaseState extends Object,
   BaseState _state;
   _ConveyorProcess<BaseState, Event>? _currentProcess;
   List<_ConveyorProcess<BaseState, Event>>? _currentProcesses;
-  Future<void>? _closeFuture;
+  Completer<void>? _closeCompleter;
 
   Conveyor(
     BaseState initialState,
@@ -37,6 +37,8 @@ abstract class Conveyor<BaseState extends Object,
   BaseState get state => _state;
 
   Stream<BaseState> get stream => _stateController.stream;
+
+  bool get isClosed => _closeCompleter?.isCompleted ?? false;
 
   @protected
   ConveyorQueue<BaseState, Event> get queue => _queue;
@@ -69,35 +71,37 @@ abstract class Conveyor<BaseState extends Object,
   void _setState(BaseState newState) {
     debug('state: $newState');
 
+    final previousState = _state;
     _state = newState;
+    onChanged(newState, previousState);
     _stateController.add(newState);
   }
 
   @mustCallSuper
   Future<void> close() async {
-    final closeFuture = _closeFuture;
-    if (closeFuture != null) {
-      return closeFuture;
+    var closeCompleter = _closeCompleter;
+    if (closeCompleter != null) {
+      return closeCompleter.future;
     }
-
-    final completer = Completer<void>();
-    _closeFuture = completer.future;
+    closeCompleter = _closeCompleter = Completer();
 
     debug('close');
-
-    _queue.clear();
+    _queue.close();
 
     // При закрытии дожидаемся окончания текущего рабочего процесса.
     try {
       final currentProcess = _currentProcess;
       if (currentProcess != null) {
         debug('await process {${currentProcess.event}}');
-        await currentProcess.cancel();
+        await currentProcess._cancel(
+          const CancelledAsClosed._(),
+          StackTrace.current,
+        );
       }
 
       await _stateController.close();
     } finally {
-      completer.complete();
+      closeCompleter.complete();
     }
   }
 
@@ -106,7 +110,7 @@ abstract class Conveyor<BaseState extends Object,
 
     final currentProcess = _currentProcess;
     if (currentProcess != null) {
-      await currentProcess.future;
+      await currentProcess.result.done;
     }
   }
 
@@ -177,6 +181,10 @@ abstract class Conveyor<BaseState extends Object,
   ) {
     final str = message is String Function() ? message() : message.toString();
     onLog(process, str);
+  }
+
+  void onChanged(BaseState current, BaseState previous) {
+    debug('$previous -> $current');
   }
 
   Event? get lastEvent => queue.lastOrNull ?? currentProcess?.event;

@@ -22,7 +22,7 @@ sealed class Cancelled implements Exception {
 /// throw CancelledByException();
 /// ```
 ///
-/// Прямой доступ к созданию других классов пользователь не имеет.
+/// Это единственное исключение, которое пользователь может создать сам.
 final class CancelledByException extends Cancelled {
   const CancelledByException() : super._();
 
@@ -85,12 +85,25 @@ final class CancelledByCheckState extends Cancelled {
   String toString() => '$CancelledByCheckState(${description ?? ''})';
 }
 
+/// Событие отменено по причине закрытия конвейера.
+final class CancelledAsClosed extends Cancelled {
+  const CancelledAsClosed._() : super._();
+
+  @override
+  String toString() => '$CancelledAsClosed()';
+}
+
+/// Класс, сигнализирующий об удалении события из очереди.
+sealed class Removed extends Cancelled {
+  const Removed._() : super._();
+}
+
 /// Событие удалено из очереди вручную.
 ///
 /// ```
 /// conveyor.remove(...);
 /// ```
-final class RemovedManually extends Cancelled {
+final class RemovedManually extends Removed {
   const RemovedManually._() : super._();
 
   @override
@@ -101,11 +114,19 @@ final class RemovedManually extends Cancelled {
 /// обработки события.
 ///
 /// Причина срабатывает при поиске очередного события для обработки.
-final class RemovedByEventRules extends Cancelled {
+final class RemovedByEventRules extends Removed {
   final String? description;
 
   const RemovedByEventRules._([this.description]) : super._();
 
   @override
   String toString() => '$RemovedByEventRules(${description ?? ''})';
+}
+
+/// Событие удалено по причине закрытия очереди.
+final class RemovedAsClosed extends Removed {
+  const RemovedAsClosed._() : super._();
+
+  @override
+  String toString() => '$RemovedAsClosed()';
 }

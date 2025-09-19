@@ -21,7 +21,7 @@ abstract interface class ConveyorProcess<BaseState extends Object,
   bool get inProgress;
 
   /// Возможность дождаться окончания процесса.
-  Future<void> get future;
+  ConveyorResult get result;
 
   /// Отмена процесса.
   ///
@@ -75,7 +75,7 @@ class _ConveyorProcess<BaseState extends Object,
   bool get inProgress => _subscription != null;
 
   @override
-  Future<void> get future => event.result.future;
+  ConveyorResult get result => event.result;
 
   void _start() {
     conveyor.onStart(this);
@@ -132,11 +132,6 @@ class _ConveyorProcess<BaseState extends Object,
 
   @override
   Future<void> cancel() async {
-    if (event.uncancellable) {
-      debug("$event can't be cancelled");
-      return;
-    }
-
     await _cancel(
       const CancelledManually._(),
       StackTrace.current,
@@ -148,9 +143,15 @@ class _ConveyorProcess<BaseState extends Object,
       test(event) ? event : null;
 
   Future<void> _cancel(Cancelled reason, StackTrace stackTrace) async {
-    var cancelFuture = _cancelFuture;
+    if (event.uncancellable) {
+      debug("$event can't be cancelled");
+      return;
+    }
+
+    final cancelFuture = _cancelFuture;
     if (cancelFuture != null) {
-      return cancelFuture;
+      await cancelFuture;
+      return;
     }
 
     final subscription = _subscription;
@@ -160,20 +161,24 @@ class _ConveyorProcess<BaseState extends Object,
 
     debug('$event start cancellation: $reason');
 
-    cancelFuture = subscription.cancel().onError<Object>(
+    // Начинаем отмену: срабатывает [ConveyorResult.onCancelled].
+    event._result.cancelStart(reason, stackTrace);
+
+    final future = subscription.cancel().onError<Object>(
       (error, stackTrace) {
         if (error is! Cancelled) {
           conveyor.onError(this, error, stackTrace);
         }
       },
     );
-    _cancelFuture = cancelFuture;
+    _cancelFuture = future;
 
-    await cancelFuture;
+    await future;
     _cancelFuture = null;
 
+    // Завершаем выполнение: срабатывает [ConveyorResult.done].
     _subscription = null;
-    event._result.cancel(reason, stackTrace);
+    event._result.cancelFinish();
     onFinish();
     conveyor.onCancel(this);
     debug('$event finish cancellation');

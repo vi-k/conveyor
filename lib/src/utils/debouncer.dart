@@ -54,5 +54,5 @@ final class Debouncer<T extends Object?> {
 }
 
 final class DebouncerSkip implements Exception {
-  DebouncerSkip();
+  const DebouncerSkip();
 }

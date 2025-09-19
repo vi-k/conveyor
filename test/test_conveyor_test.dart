@@ -31,7 +31,7 @@ void main() {
     bool identicalResults(int index1, int index2) =>
         identical(results[index1].$2, results[index2].$2);
 
-    Future<void> awaitResults() => results.map((e) => e.$2.future).wait;
+    Future<void> awaitResults() => results.map((e) => e.$2.done).wait;
 
     setUp(() async {
       states = [];
@@ -159,17 +159,17 @@ void main() {
             expect(async.elapsed, Duration.zero);
 
             expect(conveyor.log.log, [
-              '[init] removed $RemovedManually()',
-              '[incrementA] removed $RemovedManually()',
-              '[incrementB] removed $RemovedManually()',
-              '[finish] removed $RemovedManually()',
+              '[init] removed $RemovedAsClosed()',
+              '[incrementA] removed $RemovedAsClosed()',
+              '[incrementB] removed $RemovedAsClosed()',
+              '[finish] removed $RemovedAsClosed()',
             ]);
 
             expect(resultsToStrings(), [
-              '[init] $RemovedManually()',
-              '[incrementA] $RemovedManually()',
-              '[incrementB] $RemovedManually()',
-              '[finish] $RemovedManually()',
+              '[init] $RemovedAsClosed()',
+              '[incrementA] $RemovedAsClosed()',
+              '[incrementB] $RemovedAsClosed()',
+              '[finish] $RemovedAsClosed()',
             ]);
           }),
         );
@@ -186,17 +186,17 @@ void main() {
 
             expect(conveyor.log.log, [
               '[init] started',
-              '[incrementA] removed $RemovedManually()',
-              '[incrementB] removed $RemovedManually()',
-              '[finish] removed $RemovedManually()',
-              '[init] cancelled $CancelledManually()',
+              '[incrementA] removed $RemovedAsClosed()',
+              '[incrementB] removed $RemovedAsClosed()',
+              '[finish] removed $RemovedAsClosed()',
+              '[init] cancelled $CancelledAsClosed()',
             ]);
 
             expect(resultsToStrings(), [
-              '[init] $CancelledManually()',
-              '[incrementA] $RemovedManually()',
-              '[incrementB] $RemovedManually()',
-              '[finish] $RemovedManually()',
+              '[init] $CancelledAsClosed()',
+              '[incrementA] $RemovedAsClosed()',
+              '[incrementB] $RemovedAsClosed()',
+              '[finish] $RemovedAsClosed()',
             ]);
           }),
         );
@@ -215,17 +215,17 @@ void main() {
             expect(conveyor.log.log, [
               '[init] started',
               'state: $Preparing(progress: 0)',
-              '[incrementA] removed $RemovedManually()',
-              '[incrementB] removed $RemovedManually()',
-              '[finish] removed $RemovedManually()',
-              '[init] cancelled $CancelledManually()',
+              '[incrementA] removed $RemovedAsClosed()',
+              '[incrementB] removed $RemovedAsClosed()',
+              '[finish] removed $RemovedAsClosed()',
+              '[init] cancelled $CancelledAsClosed()',
             ]);
 
             expect(resultsToStrings(), [
-              '[init] $CancelledManually()',
-              '[incrementA] $RemovedManually()',
-              '[incrementB] $RemovedManually()',
-              '[finish] $RemovedManually()',
+              '[init] $CancelledAsClosed()',
+              '[incrementA] $RemovedAsClosed()',
+              '[incrementB] $RemovedAsClosed()',
+              '[finish] $RemovedAsClosed()',
             ]);
           }),
         );
@@ -245,17 +245,17 @@ void main() {
               '[init] started',
               'state: $Preparing(progress: 0)',
               'state: $Preparing(progress: 50)',
-              '[incrementA] removed $RemovedManually()',
-              '[incrementB] removed $RemovedManually()',
-              '[finish] removed $RemovedManually()',
-              '[init] cancelled $CancelledManually()',
+              '[incrementA] removed $RemovedAsClosed()',
+              '[incrementB] removed $RemovedAsClosed()',
+              '[finish] removed $RemovedAsClosed()',
+              '[init] cancelled $CancelledAsClosed()',
             ]);
 
             expect(resultsToStrings(), [
-              '[init] $CancelledManually()',
-              '[incrementA] $RemovedManually()',
-              '[incrementB] $RemovedManually()',
-              '[finish] $RemovedManually()',
+              '[init] $CancelledAsClosed()',
+              '[incrementA] $RemovedAsClosed()',
+              '[incrementB] $RemovedAsClosed()',
+              '[finish] $RemovedAsClosed()',
             ]);
           }),
         );
@@ -276,17 +276,17 @@ void main() {
               'state: $Preparing(progress: 0)',
               'state: $Preparing(progress: 50)',
               'state: $Preparing(progress: 100)',
-              '[incrementA] removed $RemovedManually()',
-              '[incrementB] removed $RemovedManually()',
-              '[finish] removed $RemovedManually()',
-              '[init] cancelled $CancelledManually()',
+              '[incrementA] removed $RemovedAsClosed()',
+              '[incrementB] removed $RemovedAsClosed()',
+              '[finish] removed $RemovedAsClosed()',
+              '[init] cancelled $CancelledAsClosed()',
             ]);
 
             expect(resultsToStrings(), [
-              '[init] $CancelledManually()',
-              '[incrementA] $RemovedManually()',
-              '[incrementB] $RemovedManually()',
-              '[finish] $RemovedManually()',
+              '[init] $CancelledAsClosed()',
+              '[incrementA] $RemovedAsClosed()',
+              '[incrementB] $RemovedAsClosed()',
+              '[finish] $RemovedAsClosed()',
             ]);
           }),
         );
@@ -310,16 +310,16 @@ void main() {
               'state: $Working(a: 0, b: 0)',
               '[init] done',
               '[incrementA] started',
-              '[incrementB] removed $RemovedManually()',
-              '[finish] removed $RemovedManually()',
-              '[incrementA] cancelled $CancelledManually()',
+              '[incrementB] removed $RemovedAsClosed()',
+              '[finish] removed $RemovedAsClosed()',
+              '[incrementA] cancelled $CancelledAsClosed()',
             ]);
 
             expect(resultsToStrings(), [
               '[init] completed',
-              '[incrementA] $CancelledManually()',
-              '[incrementB] $RemovedManually()',
-              '[finish] $RemovedManually()',
+              '[incrementA] $CancelledAsClosed()',
+              '[incrementB] $RemovedAsClosed()',
+              '[finish] $RemovedAsClosed()',
             ]);
           }),
         );
@@ -346,15 +346,15 @@ void main() {
               'state: $Working(a: 1, b: 0)',
               '[incrementA] done',
               '[incrementB] started',
-              '[finish] removed $RemovedManually()',
-              '[incrementB] cancelled $CancelledManually()',
+              '[finish] removed $RemovedAsClosed()',
+              '[incrementB] cancelled $CancelledAsClosed()',
             ]);
 
             expect(resultsToStrings(), [
               '[init] completed',
               '[incrementA] completed',
-              '[incrementB] $CancelledManually()',
-              '[finish] $RemovedManually()',
+              '[incrementB] $CancelledAsClosed()',
+              '[finish] $RemovedAsClosed()',
             ]);
           }),
         );
@@ -384,14 +384,14 @@ void main() {
               'state: $Working(a: 1, b: 1)',
               '[incrementB] done',
               '[finish] started',
-              '[finish] cancelled $CancelledManually()',
+              '[finish] cancelled $CancelledAsClosed()',
             ]);
 
             expect(resultsToStrings(), [
               '[init] completed',
               '[incrementA] completed',
               '[incrementB] completed',
-              '[finish] $CancelledManually()',
+              '[finish] $CancelledAsClosed()',
             ]);
           }),
         );

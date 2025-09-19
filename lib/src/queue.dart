@@ -7,11 +7,15 @@ final class ConveyorQueue<BaseState extends Object,
   final void Function()? onResume;
   final void Function(Event event)? onRemove;
 
+  bool _closed = false;
+
   ConveyorQueue({
     this.onPause,
     this.onResume,
     this.onRemove,
   });
+
+  bool get isClosed => _closed;
 
   @override
   Event insert(
@@ -26,6 +30,16 @@ final class ConveyorQueue<BaseState extends Object,
       '${after == null ? '' : ' after $after'}',
     );
 
+    if (_closed) {
+      event._result.cancel(
+        const RemovedAsClosed._(),
+        StackTrace.current,
+      );
+      onRemove?.call(event);
+
+      return event;
+    }
+
     final isEmpty = this.isEmpty;
     super.insert(event, before: before, after: after);
     if (isEmpty) {
@@ -37,15 +51,15 @@ final class ConveyorQueue<BaseState extends Object,
 
   @override
   // ignore: avoid_renaming_method_parameters
-  void remove(Event event) {
-    if (event.unkilled) {
+  void remove(Event event, {bool force = false}) {
+    if (!force && event.unkilled) {
       debug("remove $event - can't be removed");
       return;
     }
 
     debug('remove $event');
-
     super.remove(event);
+
     if (isEmpty) {
       onPause?.call();
     }
@@ -54,12 +68,41 @@ final class ConveyorQueue<BaseState extends Object,
       const RemovedManually._(),
       StackTrace.current,
     );
+
     onRemove?.call(event);
   }
 
   @override
-  void clear() {
-    forEach(remove);
+  void clear({bool force = false}) {
+    for (final e in this) {
+      remove(e, force: force);
+    }
+  }
+
+  /// Закрывает очередь.
+  ///
+  /// Форсированно очищает очередь даже от неубиваемых событий.
+  /// Помечает очередь как закрытую: новые события будут удаляться сразу
+  /// с признаком [RemovedAsClosed].
+  void close() {
+    debug('close queue');
+
+    _closed = true;
+
+    for (final event in this) {
+      debug(
+        'remove $event'
+        '${event.unkilled ? ' (forced because the queue is closed' : ''}',
+      );
+      super.remove(event);
+
+      event._result.cancel(
+        const RemovedAsClosed._(),
+        StackTrace.current,
+      );
+
+      onRemove?.call(event);
+    }
   }
 
   /// Вынимает из очереди первый элемент, но не отменяет его.

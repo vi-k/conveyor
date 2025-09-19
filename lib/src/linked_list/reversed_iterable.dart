@@ -4,7 +4,7 @@ final class _ReversedLinkedListIterable<T extends LinkedListItem<T>>
     extends Iterable<T> {
   final LinkedList<T> _list;
 
-  _ReversedLinkedListIterable(this._list);
+  const _ReversedLinkedListIterable(this._list);
 
   @override
   Iterator<T> get iterator => _ReversedLinkedListIterator(_list);
